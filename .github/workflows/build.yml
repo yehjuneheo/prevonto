@@ -1,0 +1,22 @@
+# Workflow Name: Build and Test Prevonto App
+name: Build and Test
+
+# Trigger this workflow on push or pull requests to the repository
+on: [push, pull_request]
+
+jobs:
+  build-and-test:
+    runs-on: macos-latest  # macOS is required for Xcode builds
+
+    steps:
+      # Step 1: Checkout code from the repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Install Xcode (if not already installed)
+      - name: Install Xcode Command Line Tools
+        run: xcode-select --install
+
+      # Step 3: Build the app using xcodebuild
+      - name: Build App
+        run: xcodebuild build -scheme Prevonto -destination 'platform=iOS Simulator,name=iPhone 15'
