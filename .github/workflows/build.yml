@@ -20,5 +20,11 @@ jobs:
         uses: actions/checkout@v4
 
       # Step 3: Build the app using xcodebuild
-      - name: Build App
-        run: xcodebuild build -scheme Prevonto -destination 'platform=iOS Simulator,name=iPhone 14 Pro Max'
+      - name: Build App on iPhone SE (3rd generation)
+        run: xcodebuild build -scheme Prevonto \
+          -destination "platform=iOS Simulator,OS=16.2,name=iPhone SE (3rd generation)"
+
+      # Step 4: Build App on iPhone 14 Pro Max
+      - name: Build App on iPhone 14 Pro Max
+        run: xcodebuild build -scheme Prevonto \
+          -destination "platform=iOS Simulator,OS=16.2,name=iPhone 14 Pro Max"
