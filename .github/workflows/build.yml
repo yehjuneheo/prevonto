@@ -13,10 +13,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Step 2: Install Xcode (if not already installed)
-      - name: Install Xcode Command Line Tools
-        run: xcode-select --install
-
-      # Step 3: Build the app using xcodebuild
+      # Step 2: Build the app using xcodebuild
       - name: Build App
         run: xcodebuild build -scheme Prevonto -destination 'platform=iOS Simulator,name=iPhone 15'
