@@ -9,10 +9,16 @@ jobs:
     runs-on: macos-latest  # macOS is required for Xcode builds
 
     steps:
-      # Step 1: Checkout code from the repository
+      # Step 1: Set up Xcode 16
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '16.0' # Specify the required Xcode version
+
+      # Step 2: Checkout code from the repository
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Step 2: Build the app using xcodebuild
+      # Step 3: Build the app using xcodebuild
       - name: Build App
         run: xcodebuild build -scheme Prevonto -destination 'platform=iOS Simulator,name=iPhone 15'
