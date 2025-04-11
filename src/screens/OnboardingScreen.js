@@ -6,8 +6,8 @@ const { width } = Dimensions.get('window');
 
 export default function OnboardingScreen({ navigation }) {
   const [currentPage, setCurrentPage] = useState(0);
-  const fadeAnim = useRef(new Animated.Value(1)).current; // For fade-out effect
-  const slideAnim = useRef(new Animated.Value(0)).current; // For slide effect
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const slideAnim = useRef(new Animated.Value(0)).current;
 
   const onboardingData = [
     { title: 'Understand Yourself' },
@@ -17,7 +17,6 @@ export default function OnboardingScreen({ navigation }) {
 
   const handleNext = () => {
     if (currentPage < onboardingData.length - 1) {
-      // Animate current page out
       Animated.parallel([
         Animated.timing(fadeAnim, {
           toValue: 0,
@@ -30,10 +29,7 @@ export default function OnboardingScreen({ navigation }) {
           useNativeDriver: true,
         }),
       ]).start(() => {
-        // Move to the next page
-        setCurrentPage(currentPage + 1);
-
-        // Reset animations for the next page
+        setCurrentPage(prev => prev + 1);
         fadeAnim.setValue(1);
         slideAnim.setValue(0);
       });
@@ -72,7 +68,7 @@ export default function OnboardingScreen({ navigation }) {
             key={index}
             style={[
               styles.paginationDot,
-              index === currentPage ? styles.paginationDotActive : {},
+              index === currentPage && styles.paginationDotActive,
             ]}
           />
         ))}
@@ -85,17 +81,22 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+    padding: 20,
   },
   skipButton: {
     alignSelf: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.1)',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-    margin: 20,
+    backgroundColor: '#fff',
+    borderColor: 'rgb(3,84,46)',
+    borderWidth: 2,
+    paddingHorizontal: '2em',
+    paddingVertical: '0.75em',
+    borderRadius: 30,
+    marginTop: '1em',
+    marginRight: '1em',
+    marginBottom: 20,
   },
   skipText: {
-    fontSize: 16,
+    fontSize: '1.5em',
     fontWeight: '500',
     color: 'rgb(3,84,46)',
   },
@@ -103,7 +104,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    width: '100%',
   },
   pagination: {
     flexDirection: 'row',
@@ -112,10 +112,10 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   paginationDot: {
-    width: '6em',
+    width: 60,
     height: 16,
-    borderRadius: 10,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    borderRadius: 8,
+    backgroundColor: 'rgba(0,0,0,0.2)',
     marginHorizontal: 8,
   },
   paginationDotActive: {
