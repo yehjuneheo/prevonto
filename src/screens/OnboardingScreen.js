@@ -1,3 +1,4 @@
+// 3 Onboarding Screens for the Prevonto App
 import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, Dimensions } from 'react-native';
 import OnboardingPage from '../components/OnboardingPage';
@@ -41,6 +42,7 @@ export default function OnboardingScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
+      {/* Skip Intro button */}
       <TouchableOpacity
         style={styles.skipButton}
         onPress={() => navigation.navigate('SignUp')}
@@ -48,6 +50,7 @@ export default function OnboardingScreen({ navigation }) {
         <Text style={styles.skipText}>Skip intro</Text>
       </TouchableOpacity>
 
+      {/* Page Transition Animation */}
       <Animated.View
         style={[
           styles.pageContainer,
@@ -63,6 +66,7 @@ export default function OnboardingScreen({ navigation }) {
         />
       </Animated.View>
 
+      {/* Pagination Icons */}
       <View style={styles.pagination}>
         {onboardingData.map((_, index) => (
           <View

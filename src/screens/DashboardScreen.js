@@ -1,3 +1,4 @@
+// Patient Dashboard page for the App
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
 import { useHealthData } from '../hooks/useHealthData';
@@ -19,6 +20,7 @@ export default function DashboardScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Dashboard's Header */}
       <Text style={styles.header}>Dashboard</Text>
       
       {!isAuthorized ? (
@@ -38,6 +40,7 @@ export default function DashboardScreen() {
           style={styles.scrollView}
           contentContainerStyle={styles.cardContainer}
         >
+          {/* Patient Vitals Info Cards */}
           <StepsCard count={stepCount} />
           <CaloriesCard count={calories} />
           <DistanceCard distance={distance} />

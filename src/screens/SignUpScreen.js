@@ -1,12 +1,11 @@
 // Sign up Screen for Prevonto App
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
     View, 
     Text, 
     StyleSheet, 
     TextInput, 
-    TouchableOpacity, 
-    Image,
+    TouchableOpacity,
     ScrollView,
     Dimensions
 } from 'react-native';
@@ -33,33 +32,45 @@ export default function SignUpScreen({ navigation }) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isTermsAccepted, setIsTermsAccepted] = useState(false);
+    const [currentQuote, setCurrentQuote] = useState(quotes[0]); // Default quote 
 
-    // Get a random quote from the array
-    const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+    // Update with a different random quote every 8 seconds
+    useEffect(() => {
+        const intervalId = setInterval(() => {
+            const randomIndex = Math.floor(Math.random() * quotes.length);
+            setCurrentQuote(quotes[randomIndex]);
+        }, 8000);
 
+        // Cleanup interval on component unmount
+        return () => clearInterval(intervalId);
+    }, []);
+
+    {/* Authentication Check and controls which page to go to next */}
     const handleSignUp = () => {
-    // Basic validation
-    if (!fullName || !email || !password) {
-        alert('Please fill in all fields');
-        return;
-    }
+        // Basic validation
+        if (!fullName || !email || !password) {
+            alert('Please fill in all fields');
+            return;
+        }
 
-    if (!isTermsAccepted) {
-        alert('Please accept the terms of use');
-        return;
-    }
+        if (!isTermsAccepted) {
+            alert('Please accept the terms of use');
+            return;
+        }
 
-    // Here you would typically handle the sign-up logic
-    // For now, we'll just navigate to a success screen or dashboard
-    navigation.navigate('SelectGender');
+        // This is where we'll implement the sign-up logic
+        // For now, we'll just navigate to a success screen or dashboard
+        navigation.navigate('SelectGender');
     };
 
     return (
         <ScrollView contentContainerStyle={styles.scrollContainer}>
             <View style={styles.container}>
+                {/* Sign Up Page's Header */}
                 <Text style={styles.header}>Let's get Started</Text>
-                <Text style={styles.quote}>{randomQuote}</Text>
+                <Text style={styles.quote}>{currentQuote}</Text>
                 
+                {/* Place to enter credentials for a new account */}
                 <View style={styles.inputContainer}>
                     <Text style={styles.inputLabel}>Full Name</Text>
                     <TextInput
@@ -93,6 +104,7 @@ export default function SignUpScreen({ navigation }) {
                     />
                 </View>
                 
+                {/* Accept our Privacy Policy and Terms of Use */}
                 <View style={styles.termsContainer}>
                     <TouchableOpacity 
                     style={styles.checkbox}
@@ -107,6 +119,7 @@ export default function SignUpScreen({ navigation }) {
                     </Text>
                 </View>
                 
+                {/* Button to create a new account on Prevonto */}
                 <TouchableOpacity 
                     style={styles.joinButton}
                     onPress={handleSignUp}
@@ -114,6 +127,7 @@ export default function SignUpScreen({ navigation }) {
                     <Text style={styles.joinButtonText}>Join</Text>
                 </TouchableOpacity>
                 
+                {/* Social media icons */}
                 <View style={styles.socialContainer}>
                     <TouchableOpacity style={styles.socialButton}>
                         <Icon name="google" size={35} color="#DB4437" />
@@ -140,7 +154,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         paddingVertical: responsiveWidth(3),
         paddingHorizontal: responsiveWidth(3),
-        width: responsiveWidth(70),
+        width: '90%',
         borderRadius: responsiveWidth(2),
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
@@ -159,7 +173,7 @@ const styles = StyleSheet.create({
     quote: {
         fontSize: responsiveWidth(3),
         color: '#666',
-        marginBottom: responsiveWidth(7),
+        marginBottom: responsiveWidth(8),
         textAlign: 'center',
         fontStyle: 'italic',
     },

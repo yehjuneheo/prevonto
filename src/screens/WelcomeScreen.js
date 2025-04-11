@@ -1,3 +1,4 @@
+// Welcome Page for Prevonto App
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 

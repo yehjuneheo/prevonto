@@ -32,12 +32,13 @@ export default function SelectGenderScreen({ navigation }) {
     {/* Control which page to go next */}
     const handleNext = () => {
         if (selectedOption) {
-            navigation.navigate('Dashboard');
+            navigation.navigate('Weight');
         }
     };
 
     return (
         <View style={styles.container}>
+            {/* Select Gender's Header */}
             <Text style={styles.header}>Select Gender</Text>
 
             {/* Select Gender Buttons */}
