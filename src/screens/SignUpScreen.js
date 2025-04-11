@@ -115,10 +115,10 @@ export default function SignUpScreen({ navigation }) {
         
         <View style={styles.socialContainer}>
             <TouchableOpacity style={styles.socialButton}>
-                <Icon name="google" size={20} color="#DB4437" />
+                <Icon name="google" size={35} color="#DB4437" />
             </TouchableOpacity>
             <TouchableOpacity style={styles.socialButton}>
-                <Icon name="facebook" size={20} color="#4267B2" />
+                <Icon name="facebook" size={35} color="#4267B2" />
             </TouchableOpacity>
         </View>
       </View>
@@ -239,7 +239,6 @@ const styles = StyleSheet.create({
     marginHorizontal: responsiveWidth(3.5),
   },
   socialIcon: {
-    fontSize: responsiveWidth(20),
     color: '#666',
   },
 });
