@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: responsiveWidth(1.5),
         elevation: 4,
-        marginVertical: responsiveWidth(6),
+        marginVertical: responsiveWidth(3),
     },
     header: {
         fontSize: responsiveWidth(5),
