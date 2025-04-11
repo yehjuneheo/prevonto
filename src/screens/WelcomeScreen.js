@@ -4,11 +4,13 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 export default function WelcomeScreen({ navigation }) {
   return (
     <View style={styles.container}>
+      {/* Prevonto App Title & Message */}
       <View style={styles.content}>
         <Text style={styles.title}>Prevonto</Text>
         <Text style={styles.subtitle}>Let's Take Control...</Text>
       </View>
       
+      {/* Let's Go Button */}
       <TouchableOpacity 
         style={styles.button}
         onPress={() => navigation.navigate('Onboarding')}

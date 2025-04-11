@@ -15,6 +15,7 @@ export default function OnboardingScreen({ navigation }) {
     { title: 'Connect with your doctors' },
   ];
 
+  {/* Handle Page Transitions and controls which page to go next */}
   const handleNext = () => {
     if (currentPage < onboardingData.length - 1) {
       Animated.parallel([
