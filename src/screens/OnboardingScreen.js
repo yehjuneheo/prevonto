@@ -34,7 +34,7 @@ export default function OnboardingScreen({ navigation }) {
         slideAnim.setValue(0);
       });
     } else {
-      navigation.navigate('Dashboard');
+      navigation.navigate('SignUp');
     }
   };
 
@@ -42,7 +42,7 @@ export default function OnboardingScreen({ navigation }) {
     <View style={styles.container}>
       <TouchableOpacity
         style={styles.skipButton}
-        onPress={() => navigation.navigate('Dashboard')}
+        onPress={() => navigation.navigate('SignUp')}
       >
         <Text style={styles.skipText}>Skip intro</Text>
       </TouchableOpacity>
