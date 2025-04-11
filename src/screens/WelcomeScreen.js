@@ -4,8 +4,10 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 export default function WelcomeScreen({ navigation }) {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Prevonto</Text>
-      <Text style={styles.subtitle}>Let's Take Control...</Text>
+      <View style={styles.content}>
+        <Text style={styles.title}>Prevonto</Text>
+        <Text style={styles.subtitle}>Let's Take Control...</Text>
+      </View>
       
       <TouchableOpacity 
         style={styles.button}
@@ -23,10 +25,15 @@ export default function WelcomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#fff',
     padding: 24,
+  },
+  content: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   title: {
     fontSize: '4em',
@@ -43,7 +50,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgb(3, 84, 46)',
     borderRadius: 15,
     width: '30em',
-    padding: 25,
+    paddingVertical: 25,
+    paddingHorizontal: 50,
+    marginBottom: '5%',
   },
   buttonContent: {
     flexDirection: 'row',
