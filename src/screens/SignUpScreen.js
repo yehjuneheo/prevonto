@@ -6,18 +6,24 @@ import {
     StyleSheet, 
     TextInput, 
     TouchableOpacity,
-    ScrollView,
-    Dimensions
+    Dimensions,
+    KeyboardAvoidingView,
+    Platform
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-// Get the application window's current width
-const { width } = Dimensions.get('window');
+// Get the application window's current width and height
+const { width, height } = Dimensions.get('window');
 
 // Function to calculate responsive width based on screen size
 const responsiveWidth = (percentage) => {
-    return width * (percentage / 100);
-};
+    return width * (percentage / 100)
+}
+
+const responsiveHeight = (percentage) => {
+    return height * (percentage / 100);
+}
 
 // Array of random quotes to display
 const quotes = [
@@ -64,146 +70,153 @@ export default function SignUpScreen({ navigation }) {
     };
 
     return (
-        <ScrollView contentContainerStyle={styles.scrollContainer}>
-            <View style={styles.container}>
-                {/* Sign Up Page's Header */}
-                <Text style={styles.header}>Let's get Started</Text>
-                <Text style={styles.quote}>{currentQuote}</Text>
-                
-                {/* Place to enter credentials for a new account */}
-                <View style={styles.inputContainer}>
-                    <Text style={styles.inputLabel}>Full Name</Text>
-                    <TextInput
-                    style={styles.input}
-                    value={fullName}
-                    onChangeText={setFullName}
-                    placeholder="Enter your full name"
-                    />
-                </View>
-                
-                <View style={styles.inputContainer}>
-                    <Text style={styles.inputLabel}>Email</Text>
-                    <TextInput
-                    style={styles.input}
-                    value={email}
-                    onChangeText={setEmail}
-                    placeholder="Enter your email"
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    />
-                </View>
-                
-                <View style={styles.inputContainer}>
-                    <Text style={styles.inputLabel}>Password</Text>
-                    <TextInput
-                    style={styles.input}
-                    value={password}
-                    onChangeText={setPassword}
-                    placeholder="Create a password"
-                    secureTextEntry
-                    />
-                </View>
-                
-                {/* Accept our Privacy Policy and Terms of Use */}
-                <View style={styles.termsContainer}>
+        <SafeAreaView style={styles.safeArea}>
+            <KeyboardAvoidingView
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                style={styles.keyboardAvoidingView}
+            >
+                <View style={styles.container}>
+                    {/* Header */}
+                    <Text style={styles.header}>Let's get Started</Text>
+                    <Text style={styles.quote}>{currentQuote}</Text>
+
+                    {/* Input Fields */}
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.inputLabel}>Full Name</Text>
+                        <TextInput
+                            style={styles.input}
+                            value={fullName}
+                            onChangeText={setFullName}
+                            placeholder="Enter your full name"
+                        />
+                    </View>
+
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.inputLabel}>Email</Text>
+                        <TextInput
+                            style={styles.input}
+                            value={email}
+                            onChangeText={setEmail}
+                            placeholder="Enter your email"
+                            keyboardType="email-address"
+                            autoCapitalize="none"
+                        />
+                    </View>
+
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.inputLabel}>Password</Text>
+                        <TextInput
+                            style={styles.input}
+                            value={password}
+                            onChangeText={setPassword}
+                            placeholder="Create a password"
+                            secureTextEntry
+                        />
+                    </View>
+
+                    {/* Terms and Conditions */}
+                    <View style={styles.termsContainer}>
+                        <TouchableOpacity 
+                            style={styles.checkbox}
+                            onPress={() => setIsTermsAccepted(!isTermsAccepted)}
+                        >
+                            {isTermsAccepted && <Text style={styles.checkmark}>✓</Text>}
+                        </TouchableOpacity>
+                        <Text style={styles.termsText}>
+                            By continuing you accept our{' '}
+                            <Text style={styles.termsLink}>Privacy Policy</Text> and{' '}
+                            <Text style={styles.termsLink}>Terms of Use</Text>.
+                        </Text>
+                    </View>
+
+                    {/* Join Button */}
                     <TouchableOpacity 
-                    style={styles.checkbox}
-                    onPress={() => setIsTermsAccepted(!isTermsAccepted)}
+                        style={styles.joinButton}
+                        onPress={handleSignUp}
                     >
-                    {isTermsAccepted && <Text style={styles.checkmark}>✓</Text>}
+                        <Text style={styles.joinButtonText}>Join</Text>
                     </TouchableOpacity>
-                    <Text style={styles.termsText}>
-                    By continuing you accept our{' '}
-                    <Text style={styles.termsLink}>Privacy Policy</Text> and{' '}
-                    <Text style={styles.termsLink}>Terms of Use</Text>
-                    </Text>
+
+                    {/* Social Media Buttons */}
+                    <View style={styles.socialContainer}>
+                        <TouchableOpacity style={styles.socialButton}>
+                            <Icon name="google" size={responsiveWidth(6)} color="#DB4437" />
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.socialButton}>
+                            <Icon name="facebook" size={responsiveWidth(6)} color="#4267B2" />
+                        </TouchableOpacity>
+                    </View>
                 </View>
-                
-                {/* Button to create a new account on Prevonto */}
-                <TouchableOpacity 
-                    style={styles.joinButton}
-                    onPress={handleSignUp}
-                >
-                    <Text style={styles.joinButtonText}>Join</Text>
-                </TouchableOpacity>
-                
-                {/* Social media icons */}
-                <View style={styles.socialContainer}>
-                    <TouchableOpacity style={styles.socialButton}>
-                        <Icon name="google" size={35} color="#DB4437" />
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.socialButton}>
-                        <Icon name="facebook" size={35} color="#4267B2" />
-                    </TouchableOpacity>
-                </View>
-            </View>
-        </ScrollView>
+            </KeyboardAvoidingView>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    scrollContainer: {
-        flexGrow: 1,
+    safeArea: {
+        flex: 1,
+        backgroundColor: '#f7f7f7',
+    },
+    keyboardAvoidingView: {
+        flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#f7f7f7',
     },
     container: {
         flex: 1,
         alignItems: 'center',
         backgroundColor: '#fff',
-        paddingVertical: responsiveWidth(3),
-        paddingHorizontal: responsiveWidth(3),
-        width: '90%',
+        width: responsiveWidth(80),
+        height: responsiveHeight(20),
+        paddingVertical: responsiveHeight(2.5),
+        paddingHorizontal: responsiveWidth(5),
         borderRadius: responsiveWidth(2),
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: responsiveWidth(1.5),
         elevation: 4,
-        marginVertical: responsiveWidth(3),
+        marginVertical: '5%',
     },
     header: {
-        fontSize: responsiveWidth(5),
+        fontSize: '5em',
         fontWeight: 'bold',
         color: 'rgb(3, 84, 46)',
-        marginBottom: responsiveWidth(2),
+        marginBottom: responsiveHeight(2),
         textAlign: 'center',
     },
     quote: {
-        fontSize: responsiveWidth(3),
+        fontSize: '2.5em',
         color: '#666',
-        marginBottom: responsiveWidth(8),
+        marginBottom: responsiveHeight(8),
         textAlign: 'center',
         fontStyle: 'italic',
     },
     inputContainer: {
         width: '100%',
-        marginBottom: responsiveWidth(5.5),
+        marginBottom: responsiveHeight(2),
     },
     inputLabel: {
-        fontSize: responsiveWidth(3),
+        fontSize: '2.5em',
         color: '#666',
-        marginBottom: responsiveWidth(0.5),
+        marginBottom: responsiveHeight(0.5),
     },
     input: {
         width: '100%',
-        height: responsiveWidth(8),
+        height: responsiveHeight(6),
         borderBottomWidth: 1,
         borderBottomColor: '#ccc',
         paddingHorizontal: responsiveWidth(2),
-        fontSize: responsiveWidth(3),
+        fontSize: '2em',
     },
     termsContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginVertical: responsiveWidth(2),
-        width: '100%',
-        marginBottom: responsiveWidth(5),
+        marginVertical: responsiveWidth(3),
     },
     checkbox: {
-        width: responsiveWidth(3.5),
-        height: responsiveWidth(3.5),
+        width: responsiveWidth(3),
+        height: responsiveWidth(3),
         borderWidth: 1,
         borderColor: 'rgb(3, 84, 46)',
         justifyContent: 'center',
@@ -215,7 +228,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     termsText: {
-        fontSize: responsiveWidth(2.8),
+        fontSize: '2em',
         color: '#666',
         flex: 1,
     },
@@ -225,7 +238,7 @@ const styles = StyleSheet.create({
     },
     joinButton: {
         width: '100%',
-        height: responsiveWidth(12),
+        height: responsiveHeight(7),
         backgroundColor: 'rgb(3, 84, 46)',
         borderRadius: responsiveWidth(4),
         justifyContent: 'center',
@@ -234,7 +247,7 @@ const styles = StyleSheet.create({
     },
     joinButtonText: {
         color: 'white',
-        fontSize: responsiveWidth(4.5),
+        fontSize: '3.5em',
         fontWeight: 'bold',
     },
     socialContainer: {
@@ -244,8 +257,8 @@ const styles = StyleSheet.create({
         marginTop: 10,
     },
     socialButton: {
-        width: responsiveWidth(10),
-        height: responsiveWidth(10),
+        width: '8em',
+        height: '8em',
         borderWidth: 1,
         borderColor: '#ccc',
         borderRadius: 25,
