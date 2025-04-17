@@ -66,7 +66,7 @@ struct OnboardingContainerView: View {
         // If this view is ever embedded in a NavigationStack, hide the default back button:
         .navigationBarBackButtonHidden(true)
         .fullScreenCover(isPresented: $showContent) {
-            ContentView()
+            AuthView()
         }
     }
 }

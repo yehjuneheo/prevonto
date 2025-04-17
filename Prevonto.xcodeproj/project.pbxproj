@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		A76404B12D9F68300075AABB /* SwiftUIPager in Frameworks */ = {isa = PBXBuildFile; productRef = A76404B02D9F68300075AABB /* SwiftUIPager */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		A7E013272D507503007A58ED /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A76404B12D9F68300075AABB /* SwiftUIPager in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -72,12 +77,20 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		A76404AF2D9F68220075AABB /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		A7E0130D2D507501007A58ED = {
 			isa = PBXGroup;
 			children = (
 				A7E013182D507501007A58ED /* Prevonto */,
 				A7E013292D507503007A58ED /* PrevontoTests */,
 				A7E013332D507503007A58ED /* PrevontoUITests */,
+				A76404AF2D9F68220075AABB /* Frameworks */,
 				A7E013172D507501007A58ED /* Products */,
 			);
 			sourceTree = "<group>";
@@ -112,6 +125,7 @@
 			);
 			name = Prevonto;
 			packageProductDependencies = (
+				A76404B02D9F68300075AABB /* SwiftUIPager */,
 			);
 			productName = Prevonto;
 			productReference = A7E013162D507501007A58ED /* Prevonto.app */;
@@ -195,6 +209,9 @@
 			);
 			mainGroup = A7E0130D2D507501007A58ED;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				A76404522D9F65B10075AABB /* XCRemoteSwiftPackageReference "SwiftUIPager" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = A7E013172D507501007A58ED /* Products */;
 			projectDirPath = "";
@@ -560,6 +577,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A76404522D9F65B10075AABB /* XCRemoteSwiftPackageReference "SwiftUIPager" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/fermoya/SwiftUIPager";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A76404B02D9F68300075AABB /* SwiftUIPager */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A76404522D9F65B10075AABB /* XCRemoteSwiftPackageReference "SwiftUIPager" */;
+			productName = SwiftUIPager;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = A7E0130E2D507501007A58ED /* Project object */;
 }
