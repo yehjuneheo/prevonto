@@ -1,109 +1,198 @@
 import SwiftUI
 
 struct OnboardingContainerView: View {
-    @State private var selection = 0 // current page index
+    @State private var currentPageIndex = 0
     @State private var showContent = false
+    @State private var showAdditionalContent = false
+    @Environment(\.dismiss) private var dismiss
+    
+    // Content for each onboarding page
+    let pages = [
+        OnboardingPage(
+            boldTitle: "Track your ",
+            italicTitle: "metrics.",
+            subtitle: "We make it easy to stay in control of your health."
+        ),
+        OnboardingPage(
+            boldTitle: "Connect with ",
+            italicTitle: "your doctors.",
+            subtitle: "Keep your doctor in the loop with real-time trends and information."
+        ),
+        OnboardingPage(
+            boldTitle: "Understand ",
+            italicTitle: "yourself",
+            subtitle: "See your unique trends from your data and turn them into decisions that work for you."
+        )
+    ]
     
     var body: some View {
-        VStack {
-            // Top bar with a styled Skip Intro button
-            HStack {
+        ZStack {
+            // Main content
+            VStack {
+                // Skip intro button
+                HStack {
+                    Spacer()
+                    Button(action: { showContent = true }) {
+                        HStack(spacing: 2) {
+                            Text("Skip intro")
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 12, weight: .semibold))
+                        }
+                        .foregroundColor(Color(red: 0.01, green: 0.33, blue: 0.18))
+                        .font(.system(size: 16, weight: .regular))
+                    }
+                    .padding(.top, 24)
+                    .padding(.trailing, 24)
+                }
+                
                 Spacer()
-                Button("Skip intro") {
-                    // Immediately jump to the main app
-                    showContent = true
+                
+                // Onboarding content
+                VStack(spacing: showAdditionalContent ? 16 : 0) {
+                    VStack(spacing: 0) {
+                        Text(pages[currentPageIndex].boldTitle)
+                            .font(.system(size: 36, weight: .bold))
+                            .foregroundColor(Color(red: 0.01, green: 0.33, blue: 0.18))
+                            .multilineTextAlignment(.center)
+                        Text(pages[currentPageIndex].italicTitle)
+                            .font(.system(size: 45, weight: .light))
+                            .italic()
+                            .tracking(2)
+                            .foregroundColor(Color(red: 0.01, green: 0.33, blue: 0.18))
+                            .multilineTextAlignment(.center)
+                    }
+                    if showAdditionalContent {
+                        Text(pages[currentPageIndex].subtitle)
+                            .font(.body)
+                            .fontWeight(.light)
+                            .foregroundColor(Color(red: 0.25, green: 0.33, blue: 0.44))
+                            .multilineTextAlignment(.center)
+                            .padding(.top, 8)
+                            .padding(.horizontal, 48)
+                            .transition(.opacity.combined(with: .move(edge: .bottom)))
+                    }
                 }
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(Color(red: 0.01, green: 0.33, blue: 0.18))
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .background(Color.gray.opacity(0.2))
-                .cornerRadius(8)
-                .padding()
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 24)
+                
+                Spacer()
+                
+                // Next button
+                VStack(spacing: 4) {
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            if showAdditionalContent {
+                                // Move to next page
+                                if currentPageIndex < pages.count - 1 {
+                                    currentPageIndex += 1
+                                    showAdditionalContent = false
+                                } else {
+                                    // Go to sign up view
+                                    showContent = true
+                                }
+                            } else {
+                                // Show additional content
+                                showAdditionalContent = true
+                            }
+                        }
+                    } label: {
+                        Image(systemName: "arrow.up")
+                            .font(.title)
+                            .fontWeight(.semibold)
+                            .padding(8)
+                            .foregroundColor(Color(red: 0.01, green: 0.33, blue: 0.18))
+                    }
+                    
+                    Text("Next")
+                        .font(.title)
+                        .fontWeight(.semibold)
+                        .foregroundColor(Color(red: 0.01, green: 0.33, blue: 0.18))
+                }
+                .padding(.bottom, 40)
             }
             
-            TabView(selection: $selection) {
-                OnboardingPageView(
-                    title: "Understand Yourself",
-                    index: 0,
-                    selection: $selection,
-                    showContent: $showContent
+            // Vertical progress indicator
+            VStack {
+                Spacer()
+                VerticalProgressIndicator(
+                    currentStep: currentPageIndex * 2 + (showAdditionalContent ? 1 : 0),
+                    totalSteps: pages.count * 2
                 )
-                .tag(0)
-                
-                OnboardingPageView(
-                    title: "Track your metrics",
-                    index: 1,
-                    selection: $selection,
-                    showContent: $showContent
-                )
-                .tag(1)
-                
-                OnboardingPageView(
-                    title: "Connect with your doctors",
-                    index: 2,
-                    selection: $selection,
-                    showContent: $showContent
-                )
-                .tag(2)
+                Spacer()
             }
-            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never)) // hide default dots
-            
-            // Custom page indicator
-            HStack(spacing: 8) {
-                ForEach(0..<3) { idx in
-                    Circle()
-                        .fill(idx == selection
-                              ? Color(red: 0.01, green: 0.33, blue: 0.18)
-                              : Color.gray.opacity(0.3))
-                        .frame(width: 8, height: 8)
-                }
-            }
-            .padding(.vertical, 16)
+            .padding(.trailing, 16)
+            .frame(maxWidth: .infinity, alignment: .trailing)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.white)
-        // If this view is ever embedded in a NavigationStack, hide the default back button:
-        .navigationBarBackButtonHidden(true)
+        .gesture(
+            DragGesture(minimumDistance: 50)
+                .onEnded { value in
+                    let verticalAmount = value.translation.height
+                    let horizontalAmount = value.translation.width
+                    
+                    // Ensure the drag is more vertical than horizontal
+                    if abs(verticalAmount) > abs(horizontalAmount) {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            if verticalAmount < 0 {
+                                // Swipe up
+                                if showAdditionalContent {
+                                    // Move to next page
+                                    if currentPageIndex < pages.count - 1 {
+                                        currentPageIndex += 1
+                                        showAdditionalContent = false
+                                    } else {
+                                        // Go to sign up view
+                                        showContent = true
+                                    }
+                                } else {
+                                    // Show additional content
+                                    showAdditionalContent = true
+                                }
+                            } else {
+                                // Swipe down
+                                if showAdditionalContent {
+                                    // Hide additional content
+                                    showAdditionalContent = false
+                                } else if currentPageIndex > 0 {
+                                    // Go to previous page with additional content shown
+                                    currentPageIndex -= 1
+                                    showAdditionalContent = true
+                                } else {
+                                    // Go to the Welcome page
+                                    dismiss()
+                                }
+                            }
+                        }
+                    }
+                }
+        )
         .fullScreenCover(isPresented: $showContent) {
             AuthView()
         }
     }
 }
 
-struct OnboardingPageView: View {
-    let title: String
-    let index: Int
-    @Binding var selection: Int
-    @Binding var showContent: Bool
+// Data model for onboarding page content
+struct OnboardingPage {
+    let boldTitle: String
+    let italicTitle: String
+    let subtitle: String
+}
+
+// Custom vertical progress indicator
+struct VerticalProgressIndicator: View {
+    let currentStep: Int
+    let totalSteps: Int
     
     var body: some View {
-        VStack {
-            Spacer()
-            Text(title)
-                .font(.title)
-                .fontWeight(.bold)
-                .foregroundColor(Color(red: 0.01, green: 0.33, blue: 0.18))
-                .padding()
-            
-            Spacer()
-            
-            // Next button
-            Button {
-                if selection < 2 {
-                    selection += 1
-                } else {
-                    showContent = true
-                }
-            } label: {
-                Image(systemName: "arrow.right")
-                    .font(.title2)
-                    .padding(16)
-                    .foregroundColor(.white)
-                    .background(Color(red: 0.01, green: 0.33, blue: 0.18))
-                    .clipShape(Circle())
+        VStack(spacing: 8) {
+            ForEach(0..<totalSteps, id: \.self) { index in
+                Capsule()
+                    .fill(index == currentStep
+                          ? Color(red: 0.01, green: 0.33, blue: 0.18)
+                          : Color.gray.opacity(0.3))
+                    .frame(width: 4, height: index == currentStep ? 36 : 12)
             }
-            .padding(.bottom, 40)
         }
     }
 }
