@@ -1,10 +1,14 @@
 import SwiftUI
 
 struct OnboardingContainerView: View {
+    @Environment(\.dismiss) private var dismiss
     @State private var currentPageIndex = 0
     @State private var showContent = false
     @State private var showAdditionalContent = false
-    @Environment(\.dismiss) private var dismiss
+    @State private var dragOffset: CGFloat = 0.0
+    
+    let maxButtonMovement: CGFloat = -30
+    let swipeThreshold: CGFloat = -30
     
     // Content for each onboarding page
     let pages = [
@@ -108,6 +112,8 @@ struct OnboardingContainerView: View {
                         .fontWeight(.semibold)
                         .foregroundColor(Color(red: 0.01, green: 0.33, blue: 0.18))
                 }
+                .offset(y: dragOffset < 0 ? max(dragOffset, maxButtonMovement) : 0)
+                .animation(.easeOut, value: dragOffset)
                 .padding(.bottom, 40)
             }
             
@@ -124,45 +130,34 @@ struct OnboardingContainerView: View {
             .frame(maxWidth: .infinity, alignment: .trailing)
         }
         .background(Color.white)
+        // Gesture for swipe up aniamtion to navigate to next page!
         .gesture(
-            DragGesture(minimumDistance: 50)
+            DragGesture(minimumDistance: 10)
+                .onChanged { value in
+                    if value.translation.height < 0 {
+                        dragOffset = value.translation.height
+                    }
+                }
                 .onEnded { value in
-                    let verticalAmount = value.translation.height
-                    let horizontalAmount = value.translation.width
-                    
-                    // Ensure the drag is more vertical than horizontal
-                    if abs(verticalAmount) > abs(horizontalAmount) {
+                    if value.translation.height < swipeThreshold {
                         withAnimation(.easeInOut(duration: 0.3)) {
-                            if verticalAmount < 0 {
-                                // Swipe up
-                                if showAdditionalContent {
-                                    // Move to next page
-                                    if currentPageIndex < pages.count - 1 {
-                                        currentPageIndex += 1
-                                        showAdditionalContent = false
-                                    } else {
-                                        // Go to sign up view
-                                        showContent = true
-                                    }
+                            if showAdditionalContent {
+                                // Move to next page
+                                if currentPageIndex < pages.count - 1 {
+                                    currentPageIndex += 1
+                                    showAdditionalContent = false
                                 } else {
-                                    // Show additional content
-                                    showAdditionalContent = true
+                                    // Go to sign up view
+                                    showContent = true
                                 }
                             } else {
-                                // Swipe down
-                                if showAdditionalContent {
-                                    // Hide additional content
-                                    showAdditionalContent = false
-                                } else if currentPageIndex > 0 {
-                                    // Go to previous page with additional content shown
-                                    currentPageIndex -= 1
-                                    showAdditionalContent = true
-                                } else {
-                                    // Go to the Welcome page
-                                    dismiss()
-                                }
+                                // Show additional content
+                                showAdditionalContent = true
                             }
                         }
+                    }
+                    withAnimation(.easeOut) {
+                        dragOffset = 0
                     }
                 }
         )
