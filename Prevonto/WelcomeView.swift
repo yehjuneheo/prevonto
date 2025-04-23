@@ -18,28 +18,41 @@ struct WelcomeView: View {
                 
             Spacer()
                 
-            // Button to load OnboardingView
+            // Next button to go to the Onboarding pages!
             Button {
                 withAnimation(.easeInOut(duration: 0.3)) {
                     showOnboarding = true
                 }
             } label: {
-                HStack {
-                    Text("Let’s Go")
+                VStack(spacing: 4) {
+                    Image(systemName: "arrow.up")
+                        .font(.title)
                         .fontWeight(.semibold)
-                    Image(systemName: "arrow.right")
+                        .foregroundColor(Color(red: 0.01, green: 0.33, blue: 0.18))
+                    Text("Next")
+                        .font(.title)
+                        .fontWeight(.semibold)
+                        .foregroundColor(Color(red: 0.01, green: 0.33, blue: 0.18))
                 }
-                .foregroundColor(.white)
-                .padding()
-                .frame(maxWidth: .infinity)
-                .background(Color(red: 0.01, green: 0.33, blue: 0.18))
-                .cornerRadius(8)
-                .padding(.horizontal, 24)
             }
             .padding(.bottom, 40)
         }
         .background(Color.white) // or Color("BackgroundColor") if you have one
         .edgesIgnoringSafeArea(.all)
+        // Implemented swipe up to go to the Onboarding page
+        .gesture(
+            DragGesture(minimumDistance: 50)
+                .onEnded { value in
+                    let verticalAmount = value.translation.height
+                    let horizontalAmount = value.translation.width
+                    // Only trigger on upward swipe (negative y), and mostly vertical
+                    if abs(verticalAmount) > abs(horizontalAmount) && verticalAmount < -50 {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            showOnboarding = true
+                        }
+                    }
+                }
+        )
         .fullScreenCover(isPresented: $showOnboarding) {
             OnboardingContainerView()
                 .transition(.move(edge: .bottom))
