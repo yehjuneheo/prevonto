@@ -1,3 +1,4 @@
+// This is the app's Onboarding pages!
 import SwiftUI
 
 struct OnboardingContainerView: View {
@@ -5,8 +6,9 @@ struct OnboardingContainerView: View {
     @State private var currentPageIndex = 0
     @State private var showContent = false
     @State private var showAdditionalContent = false
-    @State private var dragOffset: CGFloat = 0.0
     
+    // Important variables for helping animating Next button movement!
+    @State private var dragOffset: CGFloat = 0.0
     let maxButtonMovement: CGFloat = -30
     let swipeThreshold: CGFloat = -30
     
@@ -81,7 +83,7 @@ struct OnboardingContainerView: View {
                 
                 Spacer()
                 
-                // Next button
+                // Next button to go to the next Onboarding page or to the SignUpView page!
                 VStack(spacing: 4) {
                     Button {
                         withAnimation(.easeInOut(duration: 0.3)) {
@@ -117,7 +119,7 @@ struct OnboardingContainerView: View {
                 .padding(.bottom, 40)
             }
             
-            // Vertical progress indicator
+            // Vertical progress bar
             VStack {
                 Spacer()
                 VerticalProgressIndicator(
@@ -161,6 +163,7 @@ struct OnboardingContainerView: View {
                     }
                 }
         )
+        // Animated page transition to SignUpView page!
         .fullScreenCover(isPresented: $showContent) {
             AuthView()
         }
