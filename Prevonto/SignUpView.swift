@@ -1,3 +1,4 @@
+// This is the Sign Up page!
 import SwiftUI
 
 struct SignUpView: View {
@@ -41,6 +42,7 @@ struct SignUpView: View {
                     .padding(.top, 0)
                     .padding(.bottom, 24)
 
+                // A place for user to enter their credentials to create their new account
                 Group {
                     TextField("Full Name", text: $fullName)
                     TextField("Email", text: $email)
@@ -54,6 +56,7 @@ struct SignUpView: View {
                 .overlay(Rectangle().frame(height: 1).padding(.top, 43), alignment: .top)
                 .foregroundColor(.gray)
 
+                // Checkbox user must check to accept Prevonto's Privacy Policy and Term of Use
                 Toggle(isOn: $acceptedTerms) {
                     Text("By continuing you accept our Privacy Policy and Term of Use")
                         .font(.footnote)
@@ -62,6 +65,7 @@ struct SignUpView: View {
                 .toggleStyle(CheckboxToggleStyle())
                 .padding(.top, 8)
 
+                // Display Error Message for Invalid Credentials
                 if showValidationMessage {
                     Text(errorMessage)
                         .foregroundColor(.red)
@@ -74,6 +78,7 @@ struct SignUpView: View {
                     EmptyView()
                 }
 
+                // Button to check all entered credentials are valid before then proceed to the next page!
                 Button(action: {
                     if testMode {
                         navigateToGender = true
