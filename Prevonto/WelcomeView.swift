@@ -32,7 +32,7 @@ struct WelcomeView: View {
                     .font(.title)
                     .fontWeight(.semibold)
                     .foregroundColor(Color(red: 0.01, green: 0.33, blue: 0.18))
-                Text("Next")
+                Text("Let's go!")
                     .font(.title)
                     .fontWeight(.semibold)
                     .foregroundColor(Color(red: 0.01, green: 0.33, blue: 0.18))
