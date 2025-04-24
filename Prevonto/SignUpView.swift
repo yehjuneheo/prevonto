@@ -13,6 +13,16 @@ struct SignUpView: View {
     
     let testMode = true
     
+    // Supportive quotes to randomly display
+    let healthQuotes = [
+        "Prevention is better than care.",
+        "Health is wealth.",
+        "Take care of your body. It's the only place you have to live.",
+        "Your health is an investment, not an expense.",
+        "In health there is freedom. Health is the first of all liberties.",
+        "The patient experience begins and ends with compassion.",
+        "To truly imporve the patient experience, we must understand the patient journey from the patient's persepctive."
+    ]
 
     var body: some View {
         NavigationView {
@@ -23,11 +33,13 @@ struct SignUpView: View {
                     .font(.title)
                     .fontWeight(.bold)
                     .foregroundColor(Color(red: 0.01, green: 0.33, blue: 0.18))
+                    .padding(.bottom, 0)
 
-                Text("Random Quote ...............................")
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.black.opacity(0.7))
+                // Display a randomly chosen quote
+                AnimatedQuoteView(quotes: healthQuotes)
+                    .frame(height: 40)
+                    .padding(.top, 0)
+                    .padding(.bottom, 24)
 
                 Group {
                     TextField("Full Name", text: $fullName)
