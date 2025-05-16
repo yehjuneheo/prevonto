@@ -1,3 +1,4 @@
+// This is the Sign Up page!
 import SwiftUI
 
 struct SignUpView: View {
@@ -13,6 +14,16 @@ struct SignUpView: View {
     
     let testMode = true
     
+    // Supportive quotes to randomly display
+    let healthQuotes = [
+        "Prevention is better than care.",
+        "Health is wealth.",
+        "Take care of your body. It's the only place you have to live.",
+        "Your health is an investment, not an expense.",
+        "In health there is freedom. Health is the first of all liberties.",
+        "The patient experience begins and ends with compassion.",
+        "To truly imporve the patient experience, we must understand the patient journey from the patient's persepctive."
+    ]
 
     var body: some View {
         NavigationView {
@@ -23,12 +34,15 @@ struct SignUpView: View {
                     .font(.title)
                     .fontWeight(.bold)
                     .foregroundColor(Color(red: 0.01, green: 0.33, blue: 0.18))
+                    .padding(.bottom, 0)
 
-                Text("Random Quote ...............................")
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.black.opacity(0.7))
+                // Display a randomly chosen quote
+                AnimatedQuoteView(quotes: healthQuotes)
+                    .frame(height: 40)
+                    .padding(.top, 0)
+                    .padding(.bottom, 24)
 
+                // A place for user to enter their credentials to create their new account
                 Group {
                     TextField("Full Name", text: $fullName)
                     TextField("Email", text: $email)
@@ -42,6 +56,7 @@ struct SignUpView: View {
                 .overlay(Rectangle().frame(height: 1).padding(.top, 43), alignment: .top)
                 .foregroundColor(.gray)
 
+                // Checkbox user must check to accept Prevonto's Privacy Policy and Term of Use
                 Toggle(isOn: $acceptedTerms) {
                     Text("By continuing you accept our Privacy Policy and Term of Use")
                         .font(.footnote)
@@ -50,6 +65,7 @@ struct SignUpView: View {
                 .toggleStyle(CheckboxToggleStyle())
                 .padding(.top, 8)
 
+                // Display Error Message for Invalid Credentials
                 if showValidationMessage {
                     Text(errorMessage)
                         .foregroundColor(.red)
@@ -62,6 +78,7 @@ struct SignUpView: View {
                     EmptyView()
                 }
 
+                // Button to check all entered credentials are valid before then proceed to the next page!
                 Button(action: {
                     if testMode {
                         navigateToGender = true
