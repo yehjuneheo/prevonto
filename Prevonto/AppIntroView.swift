@@ -10,9 +10,13 @@ struct AppIntroView: View {
     // Timer-based interaction control to prevent user interaction until subtitle appears
     @State private var canInteract = false
     @State private var timer: Timer?
+    
+    // Progress animation state for arrow color transition
+    @State private var arrowProgress: CGFloat = 0.0
 
-    // Subtitle delay duration constant for easy customization (3 seconds)
-    let subtitleDelayDuration: TimeInterval = 3.0
+    // Extended duration to give users time to read both title and subtitle before moving to the next page
+    let totalDuration: TimeInterval = 5.0  // Total time for complete arrow fill
+    let subtitleDelayDuration: TimeInterval = 2.5 // Halfway point when subtitles appear
 
     // Important variables for animating Next button movement!
     @State private var dragOffset: CGFloat = 0.0
@@ -104,21 +108,15 @@ struct AppIntroView: View {
 
                 Spacer()
 
-                // Enhanced arrow button with visual state indicators (gray when disabled, green when enabled)
+                // Up arrow button with progressive color animation
                 VStack(spacing: 4) {
                     Button {
                         handleNextAction()
                     } label: {
-                        Image(systemName: "arrow.up")
-                            .font(.title)
-                            .fontWeight(.semibold)
-                            .padding(8)
-                            // Dynamic color based on interaction state - gray when can't interact, green when can interact
-                            .foregroundColor(canInteract ?
-                                Color(red: 0.01, green: 0.33, blue: 0.18) :
-                                Color.gray.opacity(0.5))
+                        // Custom animated arrow that fills from bottom to top over extended duration
+                        AnimatedProgressArrow(progress: arrowProgress, isInteractive: canInteract)
                     }
-                    // Disable button when interaction is not allowed (during 3-second timer)
+                    // Disable button when interaction is not allowed
                     .disabled(!canInteract)
 
                     // Dynamic text based on interaction state - shows "Swipe Up for Next" only when interaction is enabled
@@ -180,25 +178,39 @@ struct AppIntroView: View {
         .onDisappear {
             stopTimer()
         }
-        // Reset set timer and states when page changes
+        // Reset arrow progress and timers when page changes
         .onChange(of: currentPageIndex) {
             canInteract = false
             showAdditionalContent = false
+            arrowProgress = 0.0
             startSubtitleTimer()
         }
         // Animated page transition to SignUpView page!
         .fullScreenCover(isPresented: $showContent) {
-            // New Changes: Updated to use SignUpView for proper navigation
             SignUpView()
         }
     }
 
-    // Timer management function that creates 3-second countdown before showing subtitle
+    // Enhanced timer management system
     private func startSubtitleTimer() {
         stopTimer() // Ensure no existing timer is running
-        timer = Timer.scheduledTimer(withTimeInterval: subtitleDelayDuration, repeats: false) { _ in
+        arrowProgress = 0.0
+        
+        // Start arrow progress animation over full duration
+        withAnimation(.linear(duration: totalDuration)) {
+            arrowProgress = 1.0
+        }
+        
+        // Show subtitles at halfway point when arrow is 50% filled
+        DispatchQueue.main.asyncAfter(deadline: .now() + subtitleDelayDuration) {
             withAnimation(.easeInOut(duration: 0.5)) {
                 showAdditionalContent = true
+            }
+        }
+        
+        // Enable interaction at end when arrow is fully filled
+        timer = Timer.scheduledTimer(withTimeInterval: totalDuration, repeats: false) { _ in
+            withAnimation(.easeInOut(duration: 0.5)) {
                 canInteract = true
             }
         }
@@ -223,6 +235,39 @@ struct AppIntroView: View {
                 stopTimer()
                 showContent = true
             }
+        }
+    }
+}
+
+// Custom animated arrow component that shows progress from bottom to top
+struct AnimatedProgressArrow: View {
+    let progress: CGFloat
+    let isInteractive: Bool
+    
+    var body: some View {
+        ZStack {
+            // Background gray arrow
+            Image(systemName: "arrow.up")
+                .font(.title)
+                .fontWeight(.semibold)
+                .foregroundColor(Color.gray.opacity(0.5))
+                .padding(8)
+            
+            // Foreground green arrow that fills from bottom to top
+            Image(systemName: "arrow.up")
+                .font(.title)
+                .fontWeight(.semibold)
+                .foregroundColor(Color(red: 0.01, green: 0.33, blue: 0.18))
+                .padding(8)
+                .mask(
+                    // Mask that reveals the green arrow from bottom to top based on progress
+                    VStack {
+                        Spacer()
+                        Rectangle()
+                            .frame(height: CGFloat(40) * progress) // 40 is approximate arrow height
+                    }
+                    .frame(width: 40, height: 40)
+                )
         }
     }
 }
@@ -257,3 +302,4 @@ struct AppIntroView_Previews: PreviewProvider {
         AppIntroView()
     }
 }
+
