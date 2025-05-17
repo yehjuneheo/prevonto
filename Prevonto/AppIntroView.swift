@@ -82,6 +82,7 @@ struct AppIntroView: View {
                     // Title moves up when subtitle appears
                     .offset(y: showAdditionalContent ? -20 : 0)
                     .animation(.easeInOut(duration: 0.5), value: showAdditionalContent)
+                    .id(currentPageIndex)
 
                     if showAdditionalContent {
                         Text(pages[currentPageIndex].subtitle)
@@ -180,7 +181,7 @@ struct AppIntroView: View {
             stopTimer()
         }
         // Reset set timer and states when page changes
-        .onChange(of: currentPageIndex) { _ in
+        .onChange(of: currentPageIndex) {
             canInteract = false
             showAdditionalContent = false
             startSubtitleTimer()
