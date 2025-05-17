@@ -123,8 +123,7 @@ struct AppIntroView: View {
                     // Dynamic text based on interaction state - shows "Swipe Up for Next" only when interaction is enabled
                     if canInteract {
                         Text("Swipe Up for Next")
-                            .font(.caption)
-                            .fontWeight(.medium)
+                            .font(.system(size: 20, weight: .semibold))
                             .foregroundColor(Color(red: 0.01, green: 0.33, blue: 0.18))
                             // Animated appearance of the instruction text
                             .transition(.move(edge: .bottom).combined(with: .opacity))
