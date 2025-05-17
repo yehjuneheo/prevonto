@@ -1,4 +1,4 @@
-// This is the app's Onboarding pages!
+// These are the Prevonto app's intro pages that displays information about the Prevonto app's main features and purpose.
 import SwiftUI
 
 struct AppIntroView: View {
@@ -6,19 +6,19 @@ struct AppIntroView: View {
     @State private var currentPageIndex = 0
     @State private var showContent = false
     @State private var showAdditionalContent = false
-    
-    // New Changes: Added timer-based interaction control to prevent user interaction until subtitle appears
+
+    // Timer-based interaction control to prevent user interaction until subtitle appears
     @State private var canInteract = false
     @State private var timer: Timer?
-    
-    // New Changes: Added subtitle delay duration constant for easy customization (3 seconds)
+
+    // Subtitle delay duration constant for easy customization (3 seconds)
     let subtitleDelayDuration: TimeInterval = 3.0
-    
-    // Important variables for helping animating Next button movement!
+
+    // Important variables for animating Next button movement!
     @State private var dragOffset: CGFloat = 0.0
     let maxButtonMovement: CGFloat = -30
     let swipeThreshold: CGFloat = -30
-    
+
     // Content for each app intro page
     let pages = [
         AppIntroPage(
@@ -37,7 +37,7 @@ struct AppIntroView: View {
             subtitle: "See your unique trends from your data and turn them into decisions that work for you."
         )
     ]
-    
+
     var body: some View {
         ZStack {
             // Main content
@@ -46,6 +46,7 @@ struct AppIntroView: View {
                 HStack {
                     Spacer()
                     Button(action: {
+                        // Stop timer when skipping to prevent memory leaks
                         stopTimer()
                         showContent = true
                     }) {
@@ -60,11 +61,12 @@ struct AppIntroView: View {
                     .padding(.top, 24)
                     .padding(.trailing, 24)
                 }
-                
+
                 Spacer()
-                
+
                 // App Intro content
                 VStack(spacing: showAdditionalContent ? 16 : 0) {
+                    // Offset animation for title movement when subtitle appears
                     VStack(spacing: 0) {
                         Text(pages[currentPageIndex].boldTitle)
                             .font(.system(size: 36, weight: .bold))
@@ -77,10 +79,10 @@ struct AppIntroView: View {
                             .foregroundColor(Color(red: 0.01, green: 0.33, blue: 0.18))
                             .multilineTextAlignment(.center)
                     }
-                    // New Changes: Title moves up when subtitle appears
+                    // Title moves up when subtitle appears
                     .offset(y: showAdditionalContent ? -20 : 0)
                     .animation(.easeInOut(duration: 0.5), value: showAdditionalContent)
-                    
+
                     if showAdditionalContent {
                         Text(pages[currentPageIndex].subtitle)
                             .font(.body)
@@ -89,7 +91,7 @@ struct AppIntroView: View {
                             .multilineTextAlignment(.center)
                             .padding(.top, 8)
                             .padding(.horizontal, 48)
-                        // New Changes: Enhanced trnasiiton with asymmetric movement and opacity for smooth subtitle appearance
+                            // Enhanced transition with asymmetric movement and opacity for smooth subtitle appearance
                             .transition(.asymmetric(
                                 insertion: .move(edge: .bottom).combined(with: .opacity),
                                 removal: .move(edge: .bottom).combined(with: .opacity)
@@ -98,10 +100,10 @@ struct AppIntroView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal, 24)
-                
+
                 Spacer()
-                
-                // Next button to go to the next Onboarding page or to the SignUpView page!
+
+                // Enhanced arrow button with visual state indicators (gray when disabled, green when enabled)
                 VStack(spacing: 4) {
                     Button {
                         handleNextAction()
@@ -110,22 +112,24 @@ struct AppIntroView: View {
                             .font(.title)
                             .fontWeight(.semibold)
                             .padding(8)
-                        // New Changes: Dynamic color based on interaction state - gray when can't ineract, green when can interact
-                            .foregroundColor(canInteract ? Color(red: 0.01, green: 0.33, blue: 0.18) : Color.gray.opacity(0.5))
+                            // Dynamic color based on interaction state - gray when can't interact, green when can interact
+                            .foregroundColor(canInteract ?
+                                Color(red: 0.01, green: 0.33, blue: 0.18) :
+                                Color.gray.opacity(0.5))
                     }
-                    // New Changes: Disable button when interaction is not allowed (during 3-second timer)
+                    // Disable button when interaction is not allowed (during 3-second timer)
                     .disabled(!canInteract)
-                    
-                    // New Changes: Dynamic text based on ineraction state - shows "Swipe Up for Next" only when interaction is enabled
+
+                    // Dynamic text based on interaction state - shows "Swipe Up for Next" only when interaction is enabled
                     if canInteract {
                         Text("Swipe Up for Next")
                             .font(.caption)
                             .fontWeight(.medium)
                             .foregroundColor(Color(red: 0.01, green: 0.33, blue: 0.18))
-                        // New Changes: Animated appearance of the instruction text
+                            // Animated appearance of the instruction text
                             .transition(.move(edge: .bottom).combined(with: .opacity))
                     } else {
-                        // New Changes: Placeholder to maintain layout consistency when text is hidden
+                        // Placeholder to maintain layout consistency when text is hidden
                         Text("")
                             .font(.caption)
                             .frame(height: 16)
@@ -135,11 +139,10 @@ struct AppIntroView: View {
                 .animation(.easeOut, value: dragOffset)
                 .padding(.bottom, 40)
             }
-            
-            // Vertical progress bar
+
+            // Vertical progress bar to show user's progress on the app intro pages
             VStack {
                 Spacer()
-                // New Changes: Simplified progress calculation to show current page instead of subtitle state
                 VerticalProgressIndicator(
                     currentStep: currentPageIndex,
                     totalSteps: pages.count
@@ -150,17 +153,17 @@ struct AppIntroView: View {
             .frame(maxWidth: .infinity, alignment: .trailing)
         }
         .background(Color.white)
-        // Gesture for swipe up aniamtion to navigate to next page!
+        // Only processes swipes when canInteract is true
         .gesture(
             DragGesture(minimumDistance: 10)
                 .onChanged { value in
-                    // New Changes: Only allow drag feedback when interaction is enabled
+                    // Only allow drag feedback when interaction is enabled
                     if value.translation.height < 0 && canInteract {
                         dragOffset = value.translation.height
                     }
                 }
                 .onEnded { value in
-                    // New Changes: Only process swipe when interaction is enabled
+                    // Only process swipe when interaction is enabled
                     if value.translation.height < swipeThreshold && canInteract {
                         handleNextAction()
                     }
@@ -169,15 +172,15 @@ struct AppIntroView: View {
                     }
                 }
         )
-        // New Changes: Added lifecycle management for timer - starts timer when view appears
+        // Starts timer when the app intro page view appears
         .onAppear {
             startSubtitleTimer()
         }
-        // New Changes: Cleanup timer when view disappears to prevent memory leaks
+        // Cleanup timer when view disappears to prevent memory leaks
         .onDisappear {
             stopTimer()
         }
-        // New Changes: Reset timer and states when page changes
+        // Reset set timer and states when page changes
         .onChange(of: currentPageIndex) { _ in
             canInteract = false
             showAdditionalContent = false
@@ -185,12 +188,13 @@ struct AppIntroView: View {
         }
         // Animated page transition to SignUpView page!
         .fullScreenCover(isPresented: $showContent) {
-            AuthView()
+            // New Changes: Updated to use SignUpView for proper navigation
+            SignUpView()
         }
     }
-    
-    // New Changes: Added timer management function that creates 3-second countdown before showing subtitle
-    private func startSubtitletimer() {
+
+    // Timer management function that creates 3-second countdown before showing subtitle
+    private func startSubtitleTimer() {
         stopTimer() // Ensure no existing timer is running
         timer = Timer.scheduledTimer(withTimeInterval: subtitleDelayDuration, repeats: false) { _ in
             withAnimation(.easeInOut(duration: 0.5)) {
@@ -199,21 +203,21 @@ struct AppIntroView: View {
             }
         }
     }
-    
-    // New Changes: Added timer cleanup function to prevent memory leaks
+
+    // Timer cleanup function to prevent memory leaks
     private func stopTimer() {
         timer?.invalidate()
         timer = nil
     }
-    
-    // New Changes: Added centralized action handling function for better code organization
+
+    // Centralized action handling function for better code organization
     private func handleNextAction() {
         guard canInteract else { return }
-        
+
         withAnimation(.easeInOut(duration: 0.3)) {
             if currentPageIndex < pages.count - 1 {
                 currentPageIndex += 1
-                // New Note: onChange will handle resetting states and starting new timer
+                // Note: onChange will handle resetting states and starting new timer
             } else {
                 // Go to sign up view
                 stopTimer()
@@ -223,25 +227,25 @@ struct AppIntroView: View {
     }
 }
 
-// Data model for onboarding page content
+// App Intro pages messages
 struct AppIntroPage {
     let boldTitle: String
     let italicTitle: String
     let subtitle: String
 }
 
-// Custom vertical progress indicator
+// Vertical Progress Indicator
 struct VerticalProgressIndicator: View {
     let currentStep: Int
     let totalSteps: Int
-    
+
     var body: some View {
         VStack(spacing: 8) {
             ForEach(0..<totalSteps, id: \.self) { index in
                 Capsule()
                     .fill(index == currentStep
-                          ? Color(red: 0.01, green: 0.33, blue: 0.18)
-                          : Color.gray.opacity(0.3))
+                        ? Color(red: 0.01, green: 0.33, blue: 0.18)
+                        : Color.gray.opacity(0.3))
                     .frame(width: 4, height: index == currentStep ? 36 : 12)
             }
         }
