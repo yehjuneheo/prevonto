@@ -1,30 +1,37 @@
 // This is the app's Onboarding pages!
 import SwiftUI
 
-struct OnboardingContainerView: View {
+struct AppIntroView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var currentPageIndex = 0
     @State private var showContent = false
     @State private var showAdditionalContent = false
+    
+    // New Changes: Added timer-based interaction control to prevent user interaction until subtitle appears
+    @State private var canInteract = false
+    @State private var timer: Timer?
+    
+    // New Changes: Added subtitle delay duration constant for easy customization (3 seconds)
+    let subtitleDelayDuration: TimeInterval = 3.0
     
     // Important variables for helping animating Next button movement!
     @State private var dragOffset: CGFloat = 0.0
     let maxButtonMovement: CGFloat = -30
     let swipeThreshold: CGFloat = -30
     
-    // Content for each onboarding page
+    // Content for each app intro page
     let pages = [
-        OnboardingPage(
+        AppIntroPage(
             boldTitle: "Track your ",
             italicTitle: "metrics.",
             subtitle: "We make it easy to stay in control of your health."
         ),
-        OnboardingPage(
+        AppIntroPage(
             boldTitle: "Connect with ",
             italicTitle: "your doctors.",
             subtitle: "Keep your doctor in the loop with real-time trends and information."
         ),
-        OnboardingPage(
+        AppIntroPage(
             boldTitle: "Understand ",
             italicTitle: "yourself",
             subtitle: "See your unique trends from your data and turn them into decisions that work for you."
@@ -38,7 +45,10 @@ struct OnboardingContainerView: View {
                 // Skip intro button
                 HStack {
                     Spacer()
-                    Button(action: { showContent = true }) {
+                    Button(action: {
+                        stopTimer()
+                        showContent = true
+                    }) {
                         HStack(spacing: 2) {
                             Text("Skip intro")
                             Image(systemName: "chevron.right")
@@ -53,7 +63,7 @@ struct OnboardingContainerView: View {
                 
                 Spacer()
                 
-                // Onboarding content
+                // App Intro content
                 VStack(spacing: showAdditionalContent ? 16 : 0) {
                     VStack(spacing: 0) {
                         Text(pages[currentPageIndex].boldTitle)
@@ -67,6 +77,10 @@ struct OnboardingContainerView: View {
                             .foregroundColor(Color(red: 0.01, green: 0.33, blue: 0.18))
                             .multilineTextAlignment(.center)
                     }
+                    // New Changes: Title moves up when subtitle appears
+                    .offset(y: showAdditionalContent ? -20 : 0)
+                    .animation(.easeInOut(duration: 0.5), value: showAdditionalContent)
+                    
                     if showAdditionalContent {
                         Text(pages[currentPageIndex].subtitle)
                             .font(.body)
@@ -75,7 +89,11 @@ struct OnboardingContainerView: View {
                             .multilineTextAlignment(.center)
                             .padding(.top, 8)
                             .padding(.horizontal, 48)
-                            .transition(.opacity.combined(with: .move(edge: .bottom)))
+                        // New Changes: Enhanced trnasiiton with asymmetric movement and opacity for smooth subtitle appearance
+                            .transition(.asymmetric(
+                                insertion: .move(edge: .bottom).combined(with: .opacity),
+                                removal: .move(edge: .bottom).combined(with: .opacity)
+                            ))
                     }
                 }
                 .frame(maxWidth: .infinity)
@@ -86,33 +104,32 @@ struct OnboardingContainerView: View {
                 // Next button to go to the next Onboarding page or to the SignUpView page!
                 VStack(spacing: 4) {
                     Button {
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            if showAdditionalContent {
-                                // Move to next page
-                                if currentPageIndex < pages.count - 1 {
-                                    currentPageIndex += 1
-                                    showAdditionalContent = false
-                                } else {
-                                    // Go to sign up view
-                                    showContent = true
-                                }
-                            } else {
-                                // Show additional content
-                                showAdditionalContent = true
-                            }
-                        }
+                        handleNextAction()
                     } label: {
                         Image(systemName: "arrow.up")
                             .font(.title)
                             .fontWeight(.semibold)
                             .padding(8)
-                            .foregroundColor(Color(red: 0.01, green: 0.33, blue: 0.18))
+                        // New Changes: Dynamic color based on interaction state - gray when can't ineract, green when can interact
+                            .foregroundColor(canInteract ? Color(red: 0.01, green: 0.33, blue: 0.18) : Color.gray.opacity(0.5))
                     }
+                    // New Changes: Disable button when interaction is not allowed (during 3-second timer)
+                    .disabled(!canInteract)
                     
-                    Text("Next")
-                        .font(.title)
-                        .fontWeight(.semibold)
-                        .foregroundColor(Color(red: 0.01, green: 0.33, blue: 0.18))
+                    // New Changes: Dynamic text based on ineraction state - shows "Swipe Up for Next" only when interaction is enabled
+                    if canInteract {
+                        Text("Swipe Up for Next")
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundColor(Color(red: 0.01, green: 0.33, blue: 0.18))
+                        // New Changes: Animated appearance of the instruction text
+                            .transition(.move(edge: .bottom).combined(with: .opacity))
+                    } else {
+                        // New Changes: Placeholder to maintain layout consistency when text is hidden
+                        Text("")
+                            .font(.caption)
+                            .frame(height: 16)
+                    }
                 }
                 .offset(y: dragOffset < 0 ? max(dragOffset, maxButtonMovement) : 0)
                 .animation(.easeOut, value: dragOffset)
@@ -122,9 +139,10 @@ struct OnboardingContainerView: View {
             // Vertical progress bar
             VStack {
                 Spacer()
+                // New Changes: Simplified progress calculation to show current page instead of subtitle state
                 VerticalProgressIndicator(
-                    currentStep: currentPageIndex * 2 + (showAdditionalContent ? 1 : 0),
-                    totalSteps: pages.count * 2
+                    currentStep: currentPageIndex,
+                    totalSteps: pages.count
                 )
                 Spacer()
             }
@@ -136,42 +154,77 @@ struct OnboardingContainerView: View {
         .gesture(
             DragGesture(minimumDistance: 10)
                 .onChanged { value in
-                    if value.translation.height < 0 {
+                    // New Changes: Only allow drag feedback when interaction is enabled
+                    if value.translation.height < 0 && canInteract {
                         dragOffset = value.translation.height
                     }
                 }
                 .onEnded { value in
-                    if value.translation.height < swipeThreshold {
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            if showAdditionalContent {
-                                // Move to next page
-                                if currentPageIndex < pages.count - 1 {
-                                    currentPageIndex += 1
-                                    showAdditionalContent = false
-                                } else {
-                                    // Go to sign up view
-                                    showContent = true
-                                }
-                            } else {
-                                // Show additional content
-                                showAdditionalContent = true
-                            }
-                        }
+                    // New Changes: Only process swipe when interaction is enabled
+                    if value.translation.height < swipeThreshold && canInteract {
+                        handleNextAction()
                     }
                     withAnimation(.easeOut) {
                         dragOffset = 0
                     }
                 }
         )
+        // New Changes: Added lifecycle management for timer - starts timer when view appears
+        .onAppear {
+            startSubtitleTimer()
+        }
+        // New Changes: Cleanup timer when view disappears to prevent memory leaks
+        .onDisappear {
+            stopTimer()
+        }
+        // New Changes: Reset timer and states when page changes
+        .onChange(of: currentPageIndex) { _ in
+            canInteract = false
+            showAdditionalContent = false
+            startSubtitleTimer()
+        }
         // Animated page transition to SignUpView page!
         .fullScreenCover(isPresented: $showContent) {
             AuthView()
         }
     }
+    
+    // New Changes: Added timer management function that creates 3-second countdown before showing subtitle
+    private func startSubtitletimer() {
+        stopTimer() // Ensure no existing timer is running
+        timer = Timer.scheduledTimer(withTimeInterval: subtitleDelayDuration, repeats: false) { _ in
+            withAnimation(.easeInOut(duration: 0.5)) {
+                showAdditionalContent = true
+                canInteract = true
+            }
+        }
+    }
+    
+    // New Changes: Added timer cleanup function to prevent memory leaks
+    private func stopTimer() {
+        timer?.invalidate()
+        timer = nil
+    }
+    
+    // New Changes: Added centralized action handling function for better code organization
+    private func handleNextAction() {
+        guard canInteract else { return }
+        
+        withAnimation(.easeInOut(duration: 0.3)) {
+            if currentPageIndex < pages.count - 1 {
+                currentPageIndex += 1
+                // New Note: onChange will handle resetting states and starting new timer
+            } else {
+                // Go to sign up view
+                stopTimer()
+                showContent = true
+            }
+        }
+    }
 }
 
 // Data model for onboarding page content
-struct OnboardingPage {
+struct AppIntroPage {
     let boldTitle: String
     let italicTitle: String
     let subtitle: String
@@ -195,8 +248,8 @@ struct VerticalProgressIndicator: View {
     }
 }
 
-struct OnboardingContainerView_Previews: PreviewProvider {
+struct AppIntroView_Previews: PreviewProvider {
     static var previews: some View {
-        OnboardingContainerView()
+        AppIntroView()
     }
 }
