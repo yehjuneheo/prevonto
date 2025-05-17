@@ -2,7 +2,7 @@
 import SwiftUI
 
 struct WelcomeView: View {
-    @State private var showOnboarding = false
+    @State private var showAppIntro = false
 
     var body: some View {
         VStack {
@@ -17,14 +17,13 @@ struct WelcomeView: View {
             Text("Let’s Take Control...")
                 .font(.system(size: 28, weight: .semibold))
                 .foregroundColor(Color(red: 0.25, green: 0.33, blue: 0.44))
-                .foregroundColor(Color(red: 0.25, green: 0.33, blue: 0.44))
                 
             Spacer()
                 
-            // Let's Go button to go to the Onboarding pages!
+            // Let's Go button to go to the App Intro pages!
             Button(action: {
                 withAnimation(.easeInOut(duration: 0.3)) {
-                    showOnboarding = true
+                    showAppIntro = true
                 }
             }) {
                 Text("Let's Go")
@@ -39,16 +38,16 @@ struct WelcomeView: View {
             }
             .padding(.bottom, 40)
         }
-        .background(Color.white) // or Color("BackgroundColor") if you have one
+        .background(Color.white)
         .edgesIgnoringSafeArea(.all)
-        // Animated page transition to Onboarding page!
-        .fullScreenCover(isPresented: $showOnboarding) {
-            OnboardingContainerView()
+        .fullScreenCover(isPresented: $showAppIntro) {
+            AppIntroView()
                 .transition(.move(edge: .bottom))
         }
     }
 }
 
+// Developers can see a preview of Prevonto's Welcome page.
 struct WelcomeView_Previews: PreviewProvider {
     static var previews: some View {
         WelcomeView()

@@ -297,9 +297,9 @@ struct VerticalProgressIndicator: View {
     }
 }
 
+// Developers can see a preview of the three App Intro pages.
 struct AppIntroView_Previews: PreviewProvider {
     static var previews: some View {
         AppIntroView()
     }
 }
-
