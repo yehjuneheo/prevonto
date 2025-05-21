@@ -1,0 +1,16 @@
+# Node.js dependencies
+node_modules
+
+# Expo files
+.expo/*
+.expo-shared/*
+
+# Android
+android/
+
+# Other configuration files specific to developers' local environment
+.vscode/
+
+# Log files
+*.log
+npm-debug.log*
