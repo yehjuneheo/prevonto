@@ -1,42 +1,50 @@
+// This is the app's landing page, the Welcome page!
 import SwiftUI
 
 struct WelcomeView: View {
-    @State private var showContent = false
+    @State private var showOnboarding = false
+
     var body: some View {
-        NavigationStack {
-            VStack {
-                Spacer()
+        VStack {
+            Spacer()
+            
+            // Prevonto title
+            Text("Prevonto")
+                .font(.system(size: 80, weight: .bold))
+                .foregroundColor(Color(red: 0.01, green: 0.33, blue: 0.18))
+            
+            // Prevonto app slogan
+            Text("Let’s Take Control...")
+                .font(.system(size: 28, weight: .semibold))
+                .foregroundColor(Color(red: 0.25, green: 0.33, blue: 0.44))
+                .foregroundColor(Color(red: 0.25, green: 0.33, blue: 0.44))
                 
-                Text("Prevonto")
-                    .font(.largeTitle)
-                    .fontWeight(.semibold)
-                    .foregroundColor(Color(red: 0.01, green: 0.33, blue: 0.18))
+            Spacer()
                 
-                Text("Let’s Take Control...")
-                    .font(.subheadline)
-                    .foregroundColor(Color(red: 0.25, green: 0.33, blue: 0.44))
-                    .padding(.top, 4)
-                
-                Spacer()
-                
-                // NavigationLink to OnboardingView
-                NavigationLink(destination: OnboardingContainerView()) {
-                    HStack {
-                        Text("Let’s Go")
-                            .fontWeight(.semibold)
-                        Image(systemName: "arrow.right")
-                    }
-                    .foregroundColor(.white)
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color(red: 0.01, green: 0.33, blue: 0.18))
-                    .cornerRadius(8)
-                    .padding(.horizontal, 24)
+            // Let's Go button to go to the Onboarding pages!
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    showOnboarding = true
                 }
-                .padding(.bottom, 40)
+            }) {
+                Text("Let's Go")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 56)
+                    .background(Color(red: 0.01, green: 0.33, blue: 0.18))
+                    .cornerRadius(16)
+                    .padding(.horizontal, 32)
             }
-            .background(Color.white) // or Color("BackgroundColor") if you have one
-            .edgesIgnoringSafeArea(.all)
+            .padding(.bottom, 40)
+        }
+        .background(Color.white) // or Color("BackgroundColor") if you have one
+        .edgesIgnoringSafeArea(.all)
+        // Animated page transition to Onboarding page!
+        .fullScreenCover(isPresented: $showOnboarding) {
+            OnboardingContainerView()
+                .transition(.move(edge: .bottom))
         }
     }
 }
