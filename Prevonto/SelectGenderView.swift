@@ -57,6 +57,6 @@ struct SelectGenderView: View {
                     .background(Color(red: 0.01, green: 0.33, blue: 0.18))
                     .cornerRadius(12)
             }
-        }
+        }.navigationBarBackButtonHidden(true)
     }
 }

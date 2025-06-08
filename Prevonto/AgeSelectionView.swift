@@ -70,7 +70,7 @@ struct CenteredVerticalAgePicker: View {
                 }
             }
         }
-        .frame(height: 220)
+        .frame(height: 240)
     }
 }
 

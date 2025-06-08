@@ -98,13 +98,13 @@ struct WeightPickerView: View {
 
                                 VStack(spacing: 6) {
                                     Rectangle()
-                                        .frame(width: 2, height: val % 10 == 0 ? 30 : 15)
-                                        .foregroundColor(isSelected ? .green : .gray.opacity(0.4))
+                                        .frame(width: 2, height: val % 10 == 0 ? 28 : 14)
+                                        .foregroundColor(isSelected ? Color(red: 0.39, green: 0.59, blue: 0.38) : .gray.opacity(0.3))
 
                                     if val % 10 == 0 {
                                         Text("\(val)")
                                             .font(.caption)
-                                            .foregroundColor(isSelected ? .green : .gray)
+                                            .foregroundColor(isSelected ? Color(red: 0.39, green: 0.59, blue: 0.38) : .gray)
                                     }
                                 }
                                 .frame(width: itemWidth)
@@ -122,13 +122,20 @@ struct WeightPickerView: View {
                     }
                 }
             }
+
+            // Vertical indicator with caps (design only)
+            VStack(spacing: 4) {
+                Circle()
+                    .frame(width: 8, height: 8)
+                RoundedRectangle(cornerRadius: 1)
+                    .frame(width: 2, height: 50)
+                Circle()
+                    .frame(width: 8, height: 8)
+            }
+            .foregroundColor(Color(red: 0.39, green: 0.59, blue: 0.38))
+            .frame(maxWidth: .infinity, alignment: .center)
         }
-        .frame(height: 100)
-        .overlay(
-            Rectangle()
-                .frame(width: 2, height: 60)
-                .foregroundColor(Color(red: 0.01, green: 0.33, blue: 0.18))
-        )
+        .frame(height: 240)
     }
 }
 
@@ -147,14 +154,15 @@ struct UnitButton: View {
             }
         }) {
             Text(title)
-                .fontWeight(.medium)
+                .fontWeight(.semibold)
+                .font(.title3)
                 .padding(.horizontal, 24)
                 .padding(.vertical, 10)
                 .frame(minWidth: 80)
                 .background(selected == title ? Color(red: 0.39, green: 0.59, blue: 0.38) : Color.clear)
                 .foregroundColor(selected == title ? .white : .gray)
                 .cornerRadius(12)
-                .shadow(color: selected == title ? Color.green.opacity(0.3) : .clear, radius: 8, x: 0, y: 4)
+                .shadow(color: selected == title ? Color.green.opacity(0.25) : .clear, radius: 8, x: 0, y: 4)
         }
     }
 }
