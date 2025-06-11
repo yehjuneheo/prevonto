@@ -3,7 +3,7 @@ import SwiftUI
 
 struct WelcomeView: View {
     @State private var showAppIntro = false
-
+    
     var body: some View {
         VStack {
             Spacer()

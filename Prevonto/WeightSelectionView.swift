@@ -9,56 +9,54 @@ struct WeightSelectionView: View {
 
     let next: () -> Void
     let back: () -> Void
+    let step: Int
 
     var currentRange: [Int] {
         selectedUnit == "lbs" ? lbRange : kgRange
     }
 
-    var displayText: String {
-        "\(selectedWeight) \(selectedUnit)"
-    }
-
     var body: some View {
-        VStack(spacing: 20) {
-            Spacer()
-
-            Text("What is your\nweight?")
-                .font(.title)
-                .fontWeight(.bold)
-                .multilineTextAlignment(.center)
-                .foregroundColor(Color(red: 0.01, green: 0.33, blue: 0.18))
-
-            HStack(spacing: 16) {
-                UnitButton(title: "lbs", selected: $selectedUnit) {
-                    selectedWeight = Int(Double(selectedWeight) * 2.20462)
+        OnboardingStepWrapper(step: step, title: "What is your weight?") {
+            VStack(spacing: 24) {
+                // Unit selection
+                HStack(spacing: 32) {
+                    UnitButton(title: "lbs", selected: $selectedUnit) {
+                        selectedWeight = Int(Double(selectedWeight) * 2.20462)
+                    }
+                    UnitButton(title: "kg", selected: $selectedUnit) {
+                        selectedWeight = Int(Double(selectedWeight) * 0.453592)
+                    }
                 }
-                UnitButton(title: "kg", selected: $selectedUnit) {
-                    selectedWeight = Int(Double(selectedWeight) * 0.453592)
+
+                // Big number display
+                HStack(spacing: 4) {
+                    Text("\(selectedWeight)")
+                        .font(.system(size: 48, weight: .bold))
+                        .foregroundColor(Color(red: 0.39, green: 0.59, blue: 0.38)) // Match design
+                    Text(selectedUnit)
+                        .foregroundColor(.gray)
+                        .font(.title3)
+                }
+
+                // Picker
+                WeightPickerView(values: currentRange, selected: $selectedWeight)
+
+                // Next button
+                Button {
+                    next()
+                } label: {
+                    Text("Next")
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 50)
+                        .background(Color(red: 0.01, green: 0.33, blue: 0.18))
+                        .cornerRadius(12)
                 }
             }
-
-            Text(displayText)
-                .font(.system(size: 40, weight: .bold))
-                .foregroundColor(Color(red: 0.01, green: 0.33, blue: 0.18))
-
-            WeightPickerView(values: currentRange, selected: $selectedWeight)
-
-            Button {
-                next()
-            } label: {
-                Text("Let’s keep going")
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 50)
-                    .background(Color(red: 0.01, green: 0.33, blue: 0.18))
-                    .cornerRadius(12)
-            }
-
-            Spacer()
         }
-        .padding()
     }
 }
+
 
 struct WeightPickerView: View {
     let values: [Int]
@@ -100,13 +98,13 @@ struct WeightPickerView: View {
 
                                 VStack(spacing: 6) {
                                     Rectangle()
-                                        .frame(width: 2, height: val % 10 == 0 ? 30 : 15)
-                                        .foregroundColor(isSelected ? .green : .gray.opacity(0.4))
+                                        .frame(width: 2, height: val % 10 == 0 ? 28 : 14)
+                                        .foregroundColor(isSelected ? Color(red: 0.39, green: 0.59, blue: 0.38) : .gray.opacity(0.3))
 
                                     if val % 10 == 0 {
                                         Text("\(val)")
                                             .font(.caption)
-                                            .foregroundColor(isSelected ? .green : .gray)
+                                            .foregroundColor(isSelected ? Color(red: 0.39, green: 0.59, blue: 0.38) : .gray)
                                     }
                                 }
                                 .frame(width: itemWidth)
@@ -124,13 +122,20 @@ struct WeightPickerView: View {
                     }
                 }
             }
+
+            // Vertical indicator with caps (design only)
+            VStack(spacing: 4) {
+                Circle()
+                    .frame(width: 8, height: 8)
+                RoundedRectangle(cornerRadius: 1)
+                    .frame(width: 2, height: 50)
+                Circle()
+                    .frame(width: 8, height: 8)
+            }
+            .foregroundColor(Color(red: 0.39, green: 0.59, blue: 0.38))
+            .frame(maxWidth: .infinity, alignment: .center)
         }
-        .frame(height: 100)
-        .overlay(
-            Rectangle()
-                .frame(width: 2, height: 60)
-                .foregroundColor(Color(red: 0.01, green: 0.33, blue: 0.18))
-        )
+        .frame(height: 240)
     }
 }
 
@@ -149,16 +154,15 @@ struct UnitButton: View {
             }
         }) {
             Text(title)
-                .fontWeight(.medium)
-                .padding(.horizontal, 20)
-                .padding(.vertical, 8)
-                .background(selected == title ? Color(red: 0.01, green: 0.33, blue: 0.18) : Color.clear)
+                .fontWeight(.semibold)
+                .font(.title3)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 10)
+                .frame(minWidth: 80)
+                .background(selected == title ? Color(red: 0.39, green: 0.59, blue: 0.38) : Color.clear)
                 .foregroundColor(selected == title ? .white : .gray)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(Color(red: 0.01, green: 0.33, blue: 0.18), lineWidth: 1)
-                )
-                .cornerRadius(10)
+                .cornerRadius(12)
+                .shadow(color: selected == title ? Color.green.opacity(0.25) : .clear, radius: 8, x: 0, y: 4)
         }
     }
 }

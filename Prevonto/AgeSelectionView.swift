@@ -5,65 +5,43 @@
 //  Created by Yehjune Heo on 4/3/25.
 //
 
-
 import SwiftUI
 
 struct AgeSelectionView: View {
     @State private var selectedAge: Int = 19
-    @State private var navigateNext = false
-    
     let next: () -> Void
     let back: () -> Void
+    let step: Int
 
     let ageRange = Array(13...100)
 
     var body: some View {
-            VStack(spacing: 20) {
-                Spacer()
+        OnboardingStepWrapper(step: step, title: "How old are you?") {
+            VStack(spacing: 24) {
+                // Picker
+                CenteredVerticalAgePicker(ages: ageRange, selectedAge: $selectedAge)
 
-                Text("What is your age?")
-                    .font(.title)
-                    .fontWeight(.bold)
-                    .multilineTextAlignment(.center)
-                    .foregroundColor(Color(red: 0.01, green: 0.33, blue: 0.18))
-
-                ZStack {
-                    Rectangle()
-                        .frame(height: 2)
-                        .foregroundColor(.clear)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color(red: 0.01, green: 0.33, blue: 0.18), lineWidth: 2)
-                                .frame(height: 60)
-                        )
-
-                    CenteredVerticalAgePicker(ages: ageRange, selectedAge: $selectedAge)
-                        .frame(height: 200)
-                }
-
+                // Next Button
                 Button {
                     next()
                 } label: {
-                    Text("Let’s keep going")
+                    Text("Next")
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .frame(height: 50)
                         .background(Color(red: 0.01, green: 0.33, blue: 0.18))
                         .cornerRadius(12)
                 }
-
-                Spacer()
             }
-            .padding()
+        }
     }
 }
-
 
 struct CenteredVerticalAgePicker: View {
     let ages: [Int]
     @Binding var selectedAge: Int
 
-    let itemHeight: CGFloat = 40
+    let itemHeight: CGFloat = 48
     let spacing: CGFloat = 12
 
     var body: some View {
@@ -75,33 +53,12 @@ struct CenteredVerticalAgePicker: View {
                 ScrollView(.vertical, showsIndicators: false) {
                     VStack(spacing: spacing) {
                         ForEach(ages, id: \.self) { age in
-                            GeometryReader { itemGeo in
-                                let itemCenterY = itemGeo.frame(in: .global).midY
-                                let distance = abs(itemCenterY - centerY)
-                                let isSelected = distance < totalHeight / 2
-
-                                Color.clear
-                                    .onAppear {
-                                        if isSelected {
-                                            selectedAge = age
-                                        }
-                                    }
-                                    .onChange(of: distance) { _ in
-                                        if isSelected {
-                                            selectedAge = age
-                                        }
-                                    }
-
-                                Text("\(age)")
-                                    .font(.system(size: isSelected ? 36 : 20, weight: isSelected ? .bold : .regular))
-                                    .foregroundColor(isSelected ? .white : .gray)
-                                    .frame(height: itemHeight)
-                                    .frame(maxWidth: .infinity)
-                                    .background(isSelected ? Color(red: 0.01, green: 0.33, blue: 0.18) : Color.clear)
-                                    .cornerRadius(12)
-                            }
-                            .frame(height: itemHeight)
-                            .id(age)
+                            AgeRow(age: age,
+                                   selectedAge: $selectedAge,
+                                   centerY: centerY,
+                                   itemHeight: itemHeight,
+                                   totalHeight: totalHeight)
+                                .id(age)
                         }
                     }
                     .padding(.vertical, (geo.size.height - itemHeight) / 2)
@@ -113,6 +70,39 @@ struct CenteredVerticalAgePicker: View {
                 }
             }
         }
+        .frame(height: 240)
     }
 }
 
+struct AgeRow: View {
+    let age: Int
+    @Binding var selectedAge: Int
+    let centerY: CGFloat
+    let itemHeight: CGFloat
+    let totalHeight: CGFloat
+
+    var body: some View {
+        GeometryReader { geo in
+            let itemCenterY = geo.frame(in: .global).midY
+            let isSelected = abs(itemCenterY - centerY) < totalHeight / 2
+
+            Text("\(age)")
+                .font(.system(size: isSelected ? 22 : 18, weight: isSelected ? .bold : .regular))
+                .foregroundColor(isSelected ? .white : .gray.opacity(0.5))
+                .padding(.horizontal, isSelected ? 32 : 0)
+                .frame(height: itemHeight)
+                .frame(maxWidth: .infinity)
+                .background(
+                    isSelected ? Color(red: 0.39, green: 0.59, blue: 0.38) : Color.clear
+                )
+                .cornerRadius(isSelected ? 16 : 0)
+                .shadow(color: isSelected ? Color.green.opacity(0.3) : .clear, radius: 8, x: 0, y: 4)
+                .onAppear {
+                    if isSelected {
+                        selectedAge = age
+                    }
+                }
+        }
+        .frame(height: itemHeight)
+    }
+}

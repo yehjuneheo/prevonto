@@ -1,126 +1,126 @@
-//
-//  MedicationSelectionView.swift
-//  Prevonto
-//
-//  Created by Yehjune Heo on 4/3/25.
-//
-
-
 import SwiftUI
 
 struct MedicationSelectionView: View {
-    @State private var selectedMeds: [String] = ["Aspirin", "Ibuprofen"]
+    @State private var selectedMeds: [String] = []
     @State private var searchQuery: String = ""
-    @State private var navigateNext = false
-    
+
     let next: () -> Void
     let back: () -> Void
+    let step: Int
 
     let allMedications = [
         "Abilify", "Abilify Maintena", "Abiraterone", "Acetaminophen",
-        "Actemra", "Axpelliarmus", "Aspirin", "Ibuprofen", "Xanax", "Zoloft"
+        "Actemra", "Aceon", "Accutane", "Acetasol HC", "Aspirin", "Ibuprofen", "Xanax", "Zoloft"
     ]
 
     var filteredMedications: [String] {
         if searchQuery.isEmpty {
-            return allMedications
+            return []
         } else {
             return allMedications.filter { $0.lowercased().contains(searchQuery.lowercased()) }
         }
     }
 
     var body: some View {
-        VStack(spacing: 16) {
-            Spacer()
-
-            Text("What medications\ndo you take?")
-                .font(.title)
-                .fontWeight(.bold)
-                .foregroundColor(Color(red: 0.01, green: 0.33, blue: 0.18))
-                .multilineTextAlignment(.center)
-
-            // Search bar (optional visual letter navigation skipped for now)
-            HStack {
-                TextField("Search medications", text: $searchQuery)
-                    .padding(.horizontal)
-                    .frame(height: 40)
-                    .background(Color.gray.opacity(0.1))
-                    .cornerRadius(8)
-
-                Image(systemName: "magnifyingglass")
-                    .foregroundColor(.gray)
-            }
-            .padding(.horizontal)
-
-            // Medication list
-            ScrollView {
-                VStack(spacing: 12) {
-                    ForEach(filteredMedications, id: \.self) { med in
-                        HStack {
-                            Text(med)
-                                .foregroundColor(.primary)
-                            Spacer()
-                            Button(action: {
-                                if selectedMeds.contains(med) {
-                                    selectedMeds.removeAll { $0 == med }
-                                } else {
-                                    selectedMeds.append(med)
-                                }
-                            }) {
-                                Image(systemName: selectedMeds.contains(med) ? "checkmark.square.fill" : "square")
-                                    .resizable()
-                                    .frame(width: 20, height: 20)
-                                    .foregroundColor(selectedMeds.contains(med) ? Color(red: 0.01, green: 0.33, blue: 0.18) : .gray)
-                            }
-                        }
-                        .padding(.horizontal)
-                    }
-                }
-            }
-
-            // Selected chips
-            if !selectedMeds.isEmpty {
+        OnboardingStepWrapper(step: step, title: "Which medications are\nyou currently taking?") {
+            VStack(spacing: 16) {
+                // Search bar
                 HStack {
-                    Text("Selected:")
-                        .font(.footnote)
-                        .foregroundColor(.gray)
+                    TextField("Search", text: $searchQuery)
+                        .padding(12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                        )
+                        .overlay(
+                            HStack {
+                                Spacer()
+                                Image(systemName: "magnifyingglass")
+                                    .foregroundColor(.gray)
+                                    .padding(.trailing, 12)
+                            }
+                        )
+                }
 
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack {
-                            ForEach(selectedMeds, id: \.self) { med in
-                                HStack(spacing: 4) {
+                // Medication search result list
+                if !filteredMedications.isEmpty {
+                    VStack(spacing: 0) {
+                        ForEach(filteredMedications, id: \.self) { med in
+                            Button(action: {
+                                toggleSelection(for: med)
+                            }) {
+                                HStack {
                                     Text(med)
-                                        .font(.footnote)
-                                    Image(systemName: "xmark.circle.fill")
-                                        .onTapGesture {
-                                            selectedMeds.removeAll { $0 == med }
-                                        }
+                                        .foregroundColor(selectedMeds.contains(med) ? .white : .primary)
+                                    Spacer()
+                                    if selectedMeds.contains(med) {
+                                        Image(systemName: "checkmark")
+                                            .foregroundColor(.white)
+                                    }
                                 }
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(Color.gray.opacity(0.2))
-                                .cornerRadius(16)
+                                .padding()
+                                .background(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(selectedMeds.contains(med) ? Color(red: 0.39, green: 0.59, blue: 0.38) : Color.white)
+                                )
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
+                    }
+                    .background(Color.gray.opacity(0.05))
+                    .cornerRadius(12)
+                }
+
+                // Selected chips
+                if !selectedMeds.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Selected:")
+                            .font(.footnote)
+                            .foregroundColor(.gray)
+
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 8) {
+                                ForEach(selectedMeds, id: \.self) { med in
+                                    HStack(spacing: 4) {
+                                        Text(med)
+                                            .font(.footnote)
+                                        Image(systemName: "xmark.circle.fill")
+                                            .onTapGesture {
+                                                selectedMeds.removeAll { $0 == med }
+                                            }
+                                    }
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 6)
+                                    .background(Color.gray.opacity(0.2))
+                                    .cornerRadius(16)
+                                }
                             }
                         }
                     }
                 }
-                .padding(.horizontal)
-            }
 
-            Button {
-                next()
-            } label: {
-                Text("One more!")
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 50)
-                    .background(Color(red: 0.01, green: 0.33, blue: 0.18))
-                    .cornerRadius(12)
-            }
+                Spacer()
 
-            Spacer()
+                // Next button
+                Button {
+                    next()
+                } label: {
+                    Text("Next")
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 50)
+                        .background(Color(red: 0.01, green: 0.33, blue: 0.18))
+                        .cornerRadius(12)
+                }
+            }
         }
-        .padding()
-        .navigationBarBackButtonHidden(true)
+    }
+
+    private func toggleSelection(for medication: String) {
+        if selectedMeds.contains(medication) {
+            selectedMeds.removeAll { $0 == medication }
+        } else {
+            selectedMeds.append(medication)
+        }
     }
 }

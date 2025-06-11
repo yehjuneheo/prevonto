@@ -1,19 +1,11 @@
-//
-//  EatingHabitSelectionView.swift
-//  Prevonto
-//
-//  Created by Yehjune Heo on 4/3/25.
-//
-
-
 import SwiftUI
 
 struct EatingHabitSelectionView: View {
     @State private var selectedHabit: String? = "Mostly Vegetarian"
-    @State private var navigateNext = false
-    
+
     let next: () -> Void
     let back: () -> Void
+    let step: Int
 
     struct HabitOption: Identifiable {
         let id = UUID()
@@ -22,64 +14,63 @@ struct EatingHabitSelectionView: View {
     }
 
     let habits: [HabitOption] = [
-        HabitOption(icon: "🍎", label: "Balanced Diet"),
-        HabitOption(icon: "🥦", label: "Mostly Vegetarian"),
-        HabitOption(icon: "🍖", label: "Low Carb"),
-        HabitOption(icon: "🥗", label: "Gluten Free")
+        .init(icon: "🍎", label: "Balanced Diet"),
+        .init(icon: "🥕", label: "Mostly Vegetarian"),
+        .init(icon: "🍖", label: "Low Carb"),
+        .init(icon: "🌾", label: "Gluten Free"),
+        .init(icon: "🌱", label: "Vegan"),
+        .init(icon: "🥩", label: "Keto")
     ]
 
     var body: some View {
-        VStack(spacing: 24) {
-            Spacer()
-
-            Text("What are your usual\neating habits?")
-                .font(.title)
-                .fontWeight(.bold)
-                .multilineTextAlignment(.center)
-                .foregroundColor(Color(red: 0.01, green: 0.33, blue: 0.18))
-
-            LazyVGrid(columns: [GridItem(), GridItem()], spacing: 20) {
+        OnboardingStepWrapper(step: step, title: "What does your current\ndiet look like?") {
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 20) {
                 ForEach(habits) { habit in
                     Button(action: {
                         selectedHabit = habit.label
                     }) {
-                        VStack(spacing: 12) {
-                            Text(habit.icon)
-                                .font(.system(size: 32))
-                            Text(habit.label)
-                                .font(.subheadline)
-                                .foregroundColor(.primary)
+                        HStack(alignment: .center, spacing: 12) {
+                            VStack(spacing: 4) {
+                                Text(habit.icon)
+                                    .font(.system(size: 26))
+                                Text(habit.label)
+                                    .font(.footnote)
+                                    .multilineTextAlignment(.center)
+                            }
+
+                            Spacer()
+
+                            if selectedHabit == habit.label {
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(Color(red: 0.01, green: 0.33, blue: 0.18))
+                            }
                         }
-                        .frame(maxWidth: .infinity, minHeight: 100)
                         .padding()
+                        .frame(maxWidth: .infinity, minHeight: 80)
                         .background(
                             RoundedRectangle(cornerRadius: 16)
-                                .fill(habit.label == selectedHabit ? Color(red: 0.01, green: 0.33, blue: 0.18) : Color.white)
+                                .fill(selectedHabit == habit.label ? Color(red: 0.39, green: 0.59, blue: 0.38) : Color.white)
                         )
-                        .foregroundColor(habit.label == selectedHabit ? .white : .black)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 16)
-                                .stroke(habit.label == selectedHabit ? Color(red: 0.8, green: 0.2, blue: 0.2) : Color.clear, lineWidth: 2)
-                        )
+                        .foregroundColor(selectedHabit == habit.label ? .white : .black)
                         .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
                     }
                 }
             }
 
+            Spacer()
+
             Button {
-                next()
+                if selectedHabit != nil {
+                    next()
+                }
             } label: {
-                Text("Two more to go!")
+                Text("Next")
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 50)
                     .background(Color(red: 0.01, green: 0.33, blue: 0.18))
                     .cornerRadius(12)
             }
-
-            Spacer()
         }
-        .padding()
-        .navigationBarBackButtonHidden(true)
     }
 }
