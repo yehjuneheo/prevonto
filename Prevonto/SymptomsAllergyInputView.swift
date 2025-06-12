@@ -1,122 +1,160 @@
-//
-//  SymptomsAllergyInputView.swift
-//  Prevonto
-//
-//  Created by Yehjune Heo on 4/3/25.
-//
-
-
 import SwiftUI
 
 struct SymptomsAllergyInputView: View {
-    @State private var inputText: String = ""
-    @State private var symptoms: [String] = ["Headache", "Muscle Fatigue"]
-    @State private var navigateToContent = false
-    
+    @State private var selectedSymptoms: Set<String> = ["Fever"]
+    @State private var selectedAllergyCategory: String? = "Food"
+    @State private var showAllergyDetails = false
+    @State private var allergyDetails: Set<String> = ["Gluten"]
+    @State private var allergyDescription: String = ""
+
     let next: () -> Void
     let back: () -> Void
+    let step: Int
 
-    let maxTags = 10
+    let commonSymptoms = ["Cough", "Fever", "Headache", "Flu", "Muscle fatigue", "Shortness of breath"]
+    let allergyCategories = ["Food", "Indoor", "Seasonal", "Drug", "Skin", "Other"]
+    let additionalAllergyTags = ["Dairy", "Gluten", "Soy", "Shellfish", "Nuts"]
 
     var body: some View {
-        VStack(spacing: 24) {
-            Spacer()
+        OnboardingStepWrapper(step: step, title: "Do you have any\nsymptoms or allergies?") {
+            VStack(alignment: .leading, spacing: 24) {
+                // Symptoms section
+                Text("Symptoms")
+                    .font(.subheadline)
+                    .foregroundColor(.gray)
 
-            Text("Do you have any\nsymptoms / allergy?")
-                .font(.title)
-                .fontWeight(.bold)
-                .multilineTextAlignment(.center)
-                .foregroundColor(Color(red: 0.01, green: 0.33, blue: 0.18))
-
-            VStack(alignment: .leading, spacing: 12) {
-                // Tag List
-                FlowLayout(tags: symptoms, deleteAction: { tag in
-                    symptoms.removeAll { $0 == tag }
-                })
-
-                // TextField for input
-                TextField("Type symptom or allergy...", text: $inputText, onCommit: {
-                    addTag()
-                })
-                .onChange(of: inputText) { newValue in
-                    if newValue.last == " " || newValue.last == "," {
-                        addTag()
-                    }
-                }
-                .textFieldStyle(PlainTextFieldStyle())
-                .padding(.horizontal)
-                .frame(height: 40)
-                .background(Color.gray.opacity(0.1))
-                .cornerRadius(8)
+                FlowLayout(tags: commonSymptoms.prefix(5).map { String($0) }, selection: $selectedSymptoms)
 
                 HStack {
+                    TagPill(label: "+4", selected: false, action: {})
                     Spacer()
-                    Text("\(symptoms.count)/\(maxTags)")
-                        .font(.caption)
+                }
+
+                HStack {
+                    TextField("Search", text: .constant(""))
+                        .disabled(true)
+                        .padding(.vertical, 8)
+                        .padding(.leading, 12)
+                    Spacer()
+                    Image(systemName: "magnifyingglass")
                         .foregroundColor(.gray)
+                        .padding(.trailing, 12)
+                }
+                .background(RoundedRectangle(cornerRadius: 12).stroke(Color.gray.opacity(0.3)))
+                .frame(height: 44)
+
+                // Allergy section
+                Text("Allergies")
+                    .font(.subheadline)
+                    .foregroundColor(.gray)
+
+                FlowLayout(tags: allergyCategories, selection: .init(
+                    get: { selectedAllergyCategory.map { [$0] } ?? [] },
+                    set: { selectedAllergyCategory = $0.first }
+                )) {
+                    if $0 == "Food" {
+                        showAllergyDetails = true
+                    }
+                }
+
+                Spacer()
+
+                Button {
+                    next()
+                } label: {
+                    Text("Next")
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 50)
+                        .background(Color(red: 0.01, green: 0.33, blue: 0.18))
+                        .cornerRadius(12)
                 }
             }
-            .padding()
-            .background(RoundedRectangle(cornerRadius: 12).stroke(Color.blue.opacity(0.4), lineWidth: 2))
-
-            NavigationLink(destination: ContentView(), isActive: $navigateToContent) {
-                EmptyView()
+            .sheet(isPresented: $showAllergyDetails) {
+                AllergyDetailModal(selectedTags: $allergyDetails, description: $allergyDescription)
             }
-
-            Button {
-                next()
-            } label: {
-                Text("Done!")
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 50)
-                    .background(Color(red: 0.01, green: 0.33, blue: 0.18))
-                    .cornerRadius(12)
-            }
-
-            Spacer()
         }
-        .padding()
-        .navigationBarBackButtonHidden(true)
     }
+}
 
-    func addTag() {
-        let trimmed = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty, !symptoms.contains(trimmed), symptoms.count < maxTags else {
-            inputText = ""
-            return
+struct FlowLayout: View {
+    let tags: [String]
+    @Binding var selection: Set<String>
+    var onTap: ((String) -> Void)? = nil
+
+    var body: some View {
+        FlexibleView(data: tags, spacing: 8, alignment: .leading) { tag in
+            TagPill(label: tag, selected: selection.contains(tag)) {
+                if selection.contains(tag) {
+                    selection.remove(tag)
+                } else {
+                    selection.insert(tag)
+                }
+                onTap?(tag)
+            }
         }
-        symptoms.append(trimmed)
-        inputText = ""
     }
 }
 
 
-struct FlowLayout: View {
-    let tags: [String]
-    var deleteAction: (String) -> Void
+struct TagPill: View {
+    let label: String
+    let selected: Bool
+    let action: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading) {
-            FlexibleView(data: tags, spacing: 8, alignment: .leading) { tag in
-                HStack(spacing: 4) {
-                    Text(tag)
-                        .font(.footnote)
-                        .foregroundColor(Color(red: 0.01, green: 0.33, blue: 0.18))
-                    Image(systemName: "xmark.circle.fill")
-                        .resizable()
-                        .frame(width: 14, height: 14)
-                        .foregroundColor(.gray)
-                        .onTapGesture {
-                            deleteAction(tag)
-                        }
+        Button(action: action) {
+            HStack(spacing: 6) {
+                Text(label)
+                    .font(.footnote)
+                    .foregroundColor(selected ? .white : .primary)
+                if selected {
+                    Image(systemName: "checkmark")
+                        .foregroundColor(.white)
+                        .font(.system(size: 10, weight: .bold))
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(Color(red: 0.9, green: 1, blue: 0.95))
-                .cornerRadius(16)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(selected ? Color(red: 0.39, green: 0.59, blue: 0.38) : Color.gray.opacity(0.15))
+            .cornerRadius(16)
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
+struct AllergyDetailModal: View {
+    @Binding var selectedTags: Set<String>
+    @Binding var description: String
+
+    let tags = ["Dairy", "Gluten", "Soy", "Shellfish", "Nuts"]
+
+    var body: some View {
+        VStack(spacing: 20) {
+            Text("Please add additional details\nregarding your food allergy")
+                .font(.headline)
+                .multilineTextAlignment(.center)
+
+            FlowLayout(tags: tags, selection: $selectedTags)
+
+            TextEditor(text: $description)
+                .frame(height: 100)
+                .padding()
+                .background(Color.gray.opacity(0.1))
+                .cornerRadius(12)
+
+            Button {
+                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            } label: {
+                Text("Save")
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 44)
+                    .background(Color(red: 0.01, green: 0.33, blue: 0.18))
+                    .cornerRadius(12)
             }
         }
+        .padding()
     }
 }
 
@@ -147,7 +185,9 @@ struct FlexibleView<Data: Collection, Content: View>: View where Data.Element: H
         var rows: [[Data.Element]] = [[]]
 
         for item in data {
-            let itemSize = CGSize(width: 80, height: 30) // Approx size
+            let itemView = UIHostingController(rootView: content(item)).view!
+            let itemSize = itemView.intrinsicContentSize
+
             if width + itemSize.width + spacing > geometry.size.width {
                 width = 0
                 height += itemSize.height + spacing

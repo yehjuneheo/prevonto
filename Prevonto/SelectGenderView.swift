@@ -3,42 +3,46 @@ import SwiftUI
 struct SelectGenderView: View {
     let next: () -> Void
     let back: () -> Void
+    let step: Int
 
     @State private var selectedGender: String? = nil
-
-    let genderOptions = ["Female", "Male", "Other", "Prefer not to say"]
+    let genderOptions = ["Male", "Female", "Other", "Prefer not to say"]
 
     var body: some View {
-        VStack(spacing: 20) {
-            Spacer()
+        OnboardingStepWrapper(step: step, title: "What is your gender?") {
+            VStack(spacing: 16) {
+                ForEach(genderOptions, id: \.self) { gender in
+                    Button(action: {
+                        selectedGender = gender
+                    }) {
+                        HStack {
+                            Text(gender)
+                                .foregroundColor(selectedGender == gender ? .white : Color(red: 0.18, green: 0.2, blue: 0.38))
+                            Spacer()
+                            ZStack {
+                                Circle()
+                                    .strokeBorder(Color.gray.opacity(0.4), lineWidth: 1)
+                                    .background(
+                                        Circle().fill(selectedGender == gender ? .white : Color.clear)
+                                    )
+                                    .frame(width: 20, height: 20)
 
-            Text("Select Gender")
-                .font(.title)
-                .fontWeight(.bold)
-                .foregroundColor(Color(red: 0.01, green: 0.33, blue: 0.18))
-
-            ForEach(genderOptions, id: \.self) { gender in
-                Button(action: {
-                    selectedGender = gender
-                }) {
-                    HStack {
-                        Image(systemName: icon(for: gender))
-                        Text(gender)
-                        Spacer()
-                        Image(systemName: selectedGender == gender ? "checkmark.square.fill" : "square")
+                                if selectedGender == gender {
+                                    Image(systemName: "checkmark")
+                                        .foregroundColor(Color(red: 0.01, green: 0.33, blue: 0.18))
+                                        .font(.system(size: 10, weight: .bold))
+                                }
+                            }
+                        }
+                        .padding()
+                        .background(selectedGender == gender ? Color(red: 0.39, green: 0.59, blue: 0.38) : Color.white)
+                        .cornerRadius(12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                        )
                     }
-                    .padding()
-                    .background(selectedGender == gender ? Color(red: 0.01, green: 0.33, blue: 0.18).opacity(0.1) : Color.white)
-                    .cornerRadius(10)
-                    .foregroundColor(.black)
                 }
-            }
-
-            if selectedGender == nil {
-                Text("Please select a gender to continue")
-                    .foregroundColor(.red)
-                    .font(.footnote)
-                    .padding(.top, -10)
             }
 
             Button {
@@ -46,25 +50,13 @@ struct SelectGenderView: View {
                     next()
                 }
             } label: {
-                Text("Let’s keep going")
+                Text("Next")
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 50)
                     .background(Color(red: 0.01, green: 0.33, blue: 0.18))
                     .cornerRadius(12)
             }
-
-            Spacer()
-        }
-        .padding()
-    }
-
-    private func icon(for gender: String) -> String {
-        switch gender {
-        case "Female": return "plus"
-        case "Male": return "person.fill"
-        case "Other": return "person.crop.circle.badge.questionmark"
-        default: return "questionmark.circle"
-        }
+        }.navigationBarBackButtonHidden(true)
     }
 }

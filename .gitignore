@@ -1,0 +1,3 @@
+# Have Git not track user-specific data and workspace data from Xcode
+xcuserdata/
+*.xcuserstate
