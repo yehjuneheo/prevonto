@@ -187,7 +187,7 @@ struct AppIntroView: View {
         }
         // Animated page transition to SignUpView page!
         .fullScreenCover(isPresented: $showContent) {
-            OnboardingFlowView()
+            SignUpView()
         }
     }
 

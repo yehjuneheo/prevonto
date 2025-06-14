@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		A76404B12D9F68300075AABB /* SwiftUIPager in Frameworks */ = {isa = PBXBuildFile; productRef = A76404B02D9F68300075AABB /* SwiftUIPager */; };
+		A7FBFE012DFE12A000D284D4 /* ElegantCalendar in Frameworks */ = {isa = PBXBuildFile; productRef = A7FBFE002DFE12A000D284D4 /* ElegantCalendar */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -57,6 +58,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A76404B12D9F68300075AABB /* SwiftUIPager in Frameworks */,
+				A7FBFE012DFE12A000D284D4 /* ElegantCalendar in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -126,6 +128,7 @@
 			name = Prevonto;
 			packageProductDependencies = (
 				A76404B02D9F68300075AABB /* SwiftUIPager */,
+				A7FBFE002DFE12A000D284D4 /* ElegantCalendar */,
 			);
 			productName = Prevonto;
 			productReference = A7E013162D507501007A58ED /* Prevonto.app */;
@@ -211,6 +214,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				A76404522D9F65B10075AABB /* XCRemoteSwiftPackageReference "SwiftUIPager" */,
+				A7FBFDFF2DFE128100D284D4 /* XCRemoteSwiftPackageReference "ElegantCalendar" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = A7E013172D507501007A58ED /* Products */;
@@ -587,6 +591,14 @@
 				minimumVersion = 2.5.0;
 			};
 		};
+		A7FBFDFF2DFE128100D284D4 /* XCRemoteSwiftPackageReference "ElegantCalendar" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ThasianX/ElegantCalendar";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.3.2;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -594,6 +606,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = A76404522D9F65B10075AABB /* XCRemoteSwiftPackageReference "SwiftUIPager" */;
 			productName = SwiftUIPager;
+		};
+		A7FBFE002DFE12A000D284D4 /* ElegantCalendar */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A7FBFDFF2DFE128100D284D4 /* XCRemoteSwiftPackageReference "ElegantCalendar" */;
+			productName = ElegantCalendar;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
