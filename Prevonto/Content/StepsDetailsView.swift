@@ -4,19 +4,32 @@ import Charts
 
 struct StepsDetailView: View {
     @Environment(\.dismiss) private var dismiss
-    @State private var selectedTimeFrame: TimeFrame = .day
     @State private var stepData: [StepReading] = []
     
-    enum TimeFrame: String, CaseIterable {
-        case day = "Day"
-        case week = "Week"
-        case month = "Month"
-        case year = "Year"
+    // Updated color scheme using secondary green and monochromatic variants
+    let primaryGreen = Color(red: 0.01, green: 0.33, blue: 0.18)     // Outermost ring - Move/Calories
+    let secondaryGreen = Color(red: 0.39, green: 0.59, blue: 0.38)   // Middle ring - Exercise/Minutes
+    let tertiaryGreen =  Color(red: 0.23, green: 0.51, blue: 0.36)      // Innermost ring - Stand/Hours
+    
+    // Define current and target values for accurate progress calculation
+    let caloriesCurrent: Double = 479
+    let caloriesTarget: Double = 800
+    let exerciseCurrent: Double = 50
+    let exerciseTarget: Double = 30
+    let standCurrent: Double = 3
+    let standTarget: Double = 12
+    
+    // Accurate progress calculations that match statistical data
+    var caloriesProgress: Double {
+        min(caloriesCurrent / caloriesTarget, 1.0) // 479/800 = 59.875% (incomplete ring)
     }
     
-    var todaySteps: Int {
-        let today = Calendar.current.startOfDay(for: Date())
-        return stepData.filter { Calendar.current.isDate($0.date, inSameDayAs: today) }.first?.steps ?? 5432
+    var exerciseProgress: Double {
+        min(exerciseCurrent / exerciseTarget, 1.0) // 50/30 = 166.67% → 100% (complete ring - goal exceeded)
+    }
+    
+    var standProgress: Double {
+        min(standCurrent / standTarget, 1.0) // 3/12 = 25% (incomplete ring)
     }
     
     var body: some View {
@@ -34,203 +47,157 @@ struct StepsDetailView: View {
                 .padding()
                 
                 ScrollView {
-                    VStack(spacing: 24) {
-                        // Title and description
-                        VStack(spacing: 8) {
-                            Text("Steps & Activity")
-                                .font(.largeTitle)
-                                .fontWeight(.bold)
-                                .foregroundColor(.black)
-                            
-                            Text("Your Steps & Activities is monitored through your watch which is in sync with the app.")
-                                .font(.subheadline)
-                                .foregroundColor(.gray)
-                                .multilineTextAlignment(.center)
-                                .padding(.horizontal)
+                    VStack(spacing: 32) {
+                        // Title and description - left aligned
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("Steps & Activity")
+                                        .font(.largeTitle)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(primaryGreen)
+                                    
+                                    Text("Your Steps & Activities is monitored through your watch which is in sync with the app.")
+                                        .font(.subheadline)
+                                        .foregroundColor(Color(red: 0.25, green: 0.33, blue: 0.44))
+                                        .multilineTextAlignment(.leading)
+                                }
+                                Spacer()
+                            }
+                            .padding(.horizontal, 24)
                         }
                         
-                        // Activity Rings
-                        VStack(spacing: 16) {
-                            Text("Activity Rings")
-                                .font(.headline)
-                                .foregroundColor(.black)
-                            
+                        // New Changes: Fixed alignment and solid colors for rings
+                        HStack(alignment: .center, spacing: 0) {
+                            // New Changes: Activity Rings with perfect alignment and solid colors
                             ZStack {
-                                // Outer ring - Move
+                                // Outer ring - Move (Primary Green) - Calories: 59.875% progress
                                 Circle()
-                                    .stroke(Color.red.opacity(0.3), lineWidth: 12)
+                                    .stroke(primaryGreen.opacity(0.15), lineWidth: 16)
                                     .frame(width: 160, height: 160)
                                 
                                 Circle()
-                                    .trim(from: 0, to: 0.75) // 75% progress
-                                    .stroke(Color.red, style: StrokeStyle(lineWidth: 12, lineCap: .round))
+                                    .trim(from: 0, to: caloriesProgress) // 59.875% fill (479/800)
+                                    // New Changes: Use solid color instead of gradient to eliminate color variations
+                                    .stroke(primaryGreen, style: StrokeStyle(lineWidth: 16, lineCap: .round))
                                     .frame(width: 160, height: 160)
                                     .rotationEffect(.degrees(-90))
                                 
-                                // Middle ring - Exercise
+                                // Middle ring - Exercise (Secondary Green) - Minutes: 100% progress (goal exceeded)
                                 Circle()
-                                    .stroke(Color.green.opacity(0.3), lineWidth: 10)
-                                    .frame(width: 130, height: 130)
+                                    .stroke(tertiaryGreen.opacity(0.15), lineWidth: 12)
+                                    .frame(width: 120, height: 120)
                                 
                                 Circle()
-                                    .trim(from: 0, to: 0.6) // 60% progress
-                                    .stroke(Color.green, style: StrokeStyle(lineWidth: 10, lineCap: .round))
-                                    .frame(width: 130, height: 130)
+                                    .trim(from: 0, to: exerciseProgress) // 100% fill (50/30 exceeds goal)
+                                    // New Changes: Use solid color instead of gradient
+                                    .stroke(tertiaryGreen, style: StrokeStyle(lineWidth: 12, lineCap: .round))
+                                    .frame(width: 120, height: 120)
                                     .rotationEffect(.degrees(-90))
                                 
-                                // Inner ring - Stand
+                                // Inner ring - Stand (Stand Green) - Hours: 25% progress
                                 Circle()
-                                    .stroke(Color.blue.opacity(0.3), lineWidth: 8)
-                                    .frame(width: 100, height: 100)
-                                
+                                    .stroke(secondaryGreen.opacity(0.15), lineWidth: 8)
+                                    .frame(width: 80, height: 80)
+
                                 Circle()
-                                    .trim(from: 0, to: 0.25) // 25% progress
-                                    .stroke(Color.blue, style: StrokeStyle(lineWidth: 8, lineCap: .round))
-                                    .frame(width: 100, height: 100)
+                                    .trim(from: 0, to: standProgress)
+                                    .stroke(secondaryGreen, style: StrokeStyle(lineWidth: 8, lineCap: .round))
+                                    .frame(width: 80, height: 80)
                                     .rotationEffect(.degrees(-90))
-                                
-                                // Center text
-                                VStack(spacing: 2) {
+                            }
+                            // New Changes: Precise alignment - align leftmost edge of rings with text
+                            .alignmentGuide(.leading) { d in
+                                d[.leading] - 80
+                            }
+                            .padding(.leading, 30) // Match title padding
+                            
+                            Spacer()
+                            
+                            // Statistics display without circle dots
+                            VStack(alignment: .leading, spacing: 24) {
+                                // Move - Calories Burned
+                                VStack(alignment: .leading, spacing: 6) {
                                     Text("Move")
-                                        .font(.caption)
-                                        .foregroundColor(.gray)
-                                    Text("479/800")
-                                        .font(.headline)
-                                        .foregroundColor(.red)
-                                    Text("CAL")
-                                        .font(.caption)
+                                        .font(.subheadline)
+                                        .fontWeight(.medium)
                                         .foregroundColor(.gray)
                                     
-                                    Text("Exercise")
-                                        .font(.caption)
-                                        .foregroundColor(.gray)
-                                    Text("50/30")
-                                        .font(.headline)
-                                        .foregroundColor(.green)
-                                    Text("MIN")
-                                        .font(.caption)
-                                        .foregroundColor(.gray)
-                                    
-                                    Text("Stand")
-                                        .font(.caption)
-                                        .foregroundColor(.gray)
-                                    Text("3/12")
-                                        .font(.headline)
-                                        .foregroundColor(.blue)
-                                    Text("HRS")
-                                        .font(.caption)
-                                        .foregroundColor(.gray)
-                                }
-                                .font(.caption)
-                            }
-                        }
-                        
-                        // Time Frame Selector
-                        HStack(spacing: 0) {
-                            ForEach(TimeFrame.allCases, id: \.self) { timeFrame in
-                                Button(action: { selectedTimeFrame = timeFrame }) {
-                                    Text(timeFrame.rawValue)
-                                        .font(.system(size: 16, weight: .medium))
-                                        .foregroundColor(selectedTimeFrame == timeFrame ? .white : .black)
+                                    Rectangle()
+                                        .fill(Color.gray.opacity(0.3))
+                                        .frame(height: 1)
                                         .frame(maxWidth: .infinity)
-                                        .frame(height: 36)
-                                        .background(selectedTimeFrame == timeFrame ? Color(red: 0.01, green: 0.33, blue: 0.18) : Color.clear)
-                                }
-                            }
-                        }
-                        .background(Color.gray.opacity(0.1))
-                        .cornerRadius(8)
-                        .padding(.horizontal)
-                        
-                        // Steps Tracker
-                        VStack(alignment: .leading, spacing: 12) {
-                            HStack {
-                                Text("Steps Tracker")
-                                    .font(.headline)
-                                    .foregroundColor(.black)
-                                Spacer()
-                            }
-                            .padding(.horizontal)
-                            
-                            // Steps display
-                            HStack {
-                                Spacer()
-                                VStack {
-                                    Text("\(todaySteps)")
-                                        .font(.title)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(Color(red: 0.01, green: 0.33, blue: 0.18))
-                                    Text("steps")
-                                        .font(.caption)
-                                        .foregroundColor(.gray)
-                                }
-                                Spacer()
-                            }
-                            
-                            // Chart
-                            Chart {
-                                ForEach(stepData) { reading in
-                                    BarMark(
-                                        x: .value("Time", reading.date),
-                                        y: .value("Steps", reading.steps)
-                                    )
-                                    .foregroundStyle(reading.steps > 8000 ? Color(red: 0.01, green: 0.33, blue: 0.18) : Color.gray.opacity(0.6))
-                                }
-                            }
-                            .frame(height: 150)
-                            .padding(.horizontal)
-                        }
-                        
-                        // Trends & Insights
-                        VStack(alignment: .leading, spacing: 12) {
-                            HStack {
-                                Text("Trends & Insights")
-                                    .font(.headline)
-                                    .foregroundColor(.black)
-                                Spacer()
-                            }
-                            .padding(.horizontal)
-                            
-                            HStack(spacing: 20) {
-                                VStack {
-                                    Image(systemName: "figure.walk")
+                                    
+                                    Text("\(Int(caloriesCurrent))/\(Int(caloriesTarget))")
                                         .font(.title2)
-                                        .foregroundColor(Color(red: 0.01, green: 0.33, blue: 0.18))
-                                    Text("52")
-                                        .font(.title)
                                         .fontWeight(.bold)
-                                        .foregroundColor(Color(red: 0.01, green: 0.33, blue: 0.18))
-                                    Text("MIN/DAY")
+                                        .foregroundColor(primaryGreen)
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.8)
+                                    
+                                    Text("Calories Burned")
                                         .font(.caption)
                                         .foregroundColor(.gray)
-                                    Text("Compared to yesterday, your exercising duration has increased! Way to stay active!")
-                                        .font(.caption)
-                                        .foregroundColor(.gray)
-                                        .multilineTextAlignment(.center)
+                                        .lineLimit(1)
                                 }
                                 
-                                VStack {
-                                    Image(systemName: "heart")
+                                // Exercise - Minutes Moving
+                                VStack(alignment: .leading, spacing: 6) {
+                                    Text("Exercise")
+                                        .font(.subheadline)
+                                        .fontWeight(.medium)
+                                        .foregroundColor(.gray)
+                                    
+                                    Rectangle()
+                                        .fill(Color.gray.opacity(0.3))
+                                        .frame(height: 1)
+                                        .frame(maxWidth: .infinity)
+                                    
+                                    Text("\(Int(exerciseCurrent))/\(Int(exerciseTarget))")
                                         .font(.title2)
-                                        .foregroundColor(.purple)
-                                    Text("12")
-                                        .font(.title)
                                         .fontWeight(.bold)
-                                        .foregroundColor(.purple)
-                                    Text("HR/D")
+                                        .foregroundColor(tertiaryGreen)
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.8)
+                                    
+                                    Text("Minutes Moving")
                                         .font(.caption)
                                         .foregroundColor(.gray)
-                                    Text("Supporting")
+                                        .lineLimit(1)
+                                }
+                                
+                                // Stand - Hours Standing
+                                VStack(alignment: .leading, spacing: 6) {
+                                    Text("Stand")
+                                        .font(.subheadline)
+                                        .fontWeight(.medium)
+                                        .foregroundColor(.gray)
+                                    
+                                    Rectangle()
+                                        .fill(Color.gray.opacity(0.3))
+                                        .frame(height: 1)
+                                        .frame(maxWidth: .infinity)
+                                    
+                                    Text("\(Int(standCurrent))/\(Int(standTarget))")
+                                        .font(.title2)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(secondaryGreen)
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.8)
+                                    
+                                    Text("Hours Standing")
                                         .font(.caption)
                                         .foregroundColor(.gray)
-                                        .multilineTextAlignment(.center)
+                                        .lineLimit(1)
                                 }
                             }
-                            .padding(.horizontal)
+                            .frame(maxWidth: 150)
+                            .padding(.trailing, 24)
                         }
                         
-                        Spacer(minLength: 50)
+                        Spacer(minLength: 100)
                     }
+                    .padding(.top, 20)
                 }
             }
         }
