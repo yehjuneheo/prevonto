@@ -186,6 +186,11 @@ struct ContentView: View {
                         }
                         .buttonStyle(.borderedProminent)
                         
+                        NavigationLink("Blood Pressure") {
+                            BloodPressureView()
+                        }
+                        .buttonStyle(.borderedProminent)
+                        
                         // Placeholder for future pages
                         NavigationLink("More Coming Soon...") {
                             Text("Future Page")
