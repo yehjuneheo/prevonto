@@ -37,17 +37,6 @@ struct StepsDetailView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
-                // Header with close button
-                HStack {
-                    Spacer()
-                    Button(action: { dismiss() }) {
-                        Image(systemName: "xmark")
-                            .foregroundColor(.gray)
-                            .font(.title2)
-                    }
-                }
-                .padding()
-                
                 ScrollView {
                     VStack(spacing: 32) {
                         // Steps & Activity page title and description
@@ -201,7 +190,6 @@ struct StepsDetailView: View {
                 }
             }
         }
-        .navigationBarHidden(true)
         .onAppear { loadSampleStepData() }
     }
     
