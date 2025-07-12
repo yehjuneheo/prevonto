@@ -4,28 +4,22 @@ import Charts
 
 struct StepsDetailView: View {
     @Environment(\.dismiss) private var dismiss
-    @State private var stepData: [StepReading] = []
     
-    // New changes: Added state for graph feature
+    // Chart state
     @State private var selectedTimeFrame: TimeFrame = .day
     @State private var selectedDataPoint: ChartDataPoint?
-    @State private var allHourlyStepData: [HourlyStepData] = []
     
-    // Fixed: Static chart data that doesn't regenerate UUIDs
+    // Chart data per time frame
     @State private var dayChartData: [ChartDataPoint] = []
     @State private var weekChartData: [ChartDataPoint] = []
     @State private var monthChartData: [ChartDataPoint] = []
     @State private var yearChartData: [ChartDataPoint] = []
     
-    // Color schemes for the Steps and Activity page
-    let primaryGreen = Color(red: 0.01, green: 0.33, blue: 0.18)
-    let secondaryGreen = Color(red: 0.39, green: 0.59, blue: 0.38)
-    let tertiaryGreen = Color(red: 0.23, green: 0.51, blue: 0.36)
+    // Performance optimizations: cached values
+    @State private var maxYValue: Int = 1000
+    @State private var currentData: [ChartDataPoint] = []
     
-    // New changes: Added bar colors
-    let defaultBarColor = Color(red: 0.682, green: 0.698, blue: 0.788) // #AEB2C9
-    
-    // Define current and target values for accurate progress calculation
+    // Activity ring values
     let caloriesCurrent: Double = 4790
     let caloriesTarget: Double = 8000
     let exerciseCurrent: Double = 50
@@ -33,36 +27,19 @@ struct StepsDetailView: View {
     let standCurrent: Double = 3
     let standTarget: Double = 12
     
-    // Progress calculations
-    var caloriesProgress: Double {
-        min(caloriesCurrent / caloriesTarget, 1.0)
-    }
-    
-    var exerciseProgress: Double {
-        min(exerciseCurrent / exerciseTarget, 1.0)
-    }
-    
-    var standProgress: Double {
-        min(standCurrent / standTarget, 1.0)
-    }
+    var caloriesProgress: Double { min(caloriesCurrent / caloriesTarget, 1.0) }
+    var exerciseProgress: Double { min(exerciseCurrent / exerciseTarget, 1.0) }
+    var standProgress: Double { min(standCurrent / standTarget, 1.0) }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 0) {
                 ScrollView {
                     VStack(spacing: 32) {
-                        // Title section
                         titleSection
-                        
-                        // Activity rings and statistics
                         activityRingsSection
-                        
-                        // Chart section with time frame buttons and heading
                         chartControlsSection
-                        
-                        // New: Separate chart display container
                         chartDisplayContainer
-                        
                         Spacer(minLength: 50)
                     }
                     .padding(.top, 16)
@@ -70,15 +47,17 @@ struct StepsDetailView: View {
             }
         }
         .onAppear {
-            loadSampleStepData()
-            generateSampleHourlyData()
-            initializeChartData() // Fixed: Initialize static chart data
+            initializeChartData()
+            refreshForTimeFrame()
+        }
+        .onChange(of: selectedTimeFrame) { _ in
+            selectedDataPoint = nil
+            refreshForTimeFrame()
         }
     }
     
     // MARK: - View Components
     
-    // Shows Steps & Activity page and subheadline
     private var titleSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
@@ -86,7 +65,7 @@ struct StepsDetailView: View {
                     Text("Steps & Activity")
                         .font(.largeTitle)
                         .fontWeight(.bold)
-                        .foregroundColor(primaryGreen)
+                        .foregroundColor(.proPrimary)
                     
                     Text("Your Steps & Activities is monitored through your watch which is in sync with the app.")
                         .font(.subheadline)
@@ -99,38 +78,36 @@ struct StepsDetailView: View {
         }
     }
     
-    // Shows 3 Activity Rings and the Statistics
     private var activityRingsSection: some View {
         HStack(alignment: .center, spacing: 0) {
-            // Activity Rings
             ZStack {
                 // Outer ring - Calories
                 Circle()
-                    .stroke(primaryGreen.opacity(0.15), lineWidth: 12)
+                    .stroke(Color.proPrimary.opacity(0.15), lineWidth: 12)
                     .frame(width: 160, height: 160)
                 Circle()
                     .trim(from: 0, to: caloriesProgress)
-                    .stroke(primaryGreen, style: StrokeStyle(lineWidth: 12, lineCap: .round))
+                    .stroke(Color.proPrimary, style: StrokeStyle(lineWidth: 12, lineCap: .round))
                     .frame(width: 160, height: 160)
                     .rotationEffect(.degrees(-90))
                 
                 // Middle ring - Exercise
                 Circle()
-                    .stroke(tertiaryGreen.opacity(0.15), lineWidth: 12)
+                    .stroke(Color.proTertiary.opacity(0.15), lineWidth: 12)
                     .frame(width: 120, height: 120)
                 Circle()
                     .trim(from: 0, to: exerciseProgress)
-                    .stroke(tertiaryGreen, style: StrokeStyle(lineWidth: 12, lineCap: .round))
+                    .stroke(Color.proTertiary, style: StrokeStyle(lineWidth: 12, lineCap: .round))
                     .frame(width: 120, height: 120)
                     .rotationEffect(.degrees(-90))
                 
                 // Inner ring - Stand
                 Circle()
-                    .stroke(secondaryGreen.opacity(0.15), lineWidth: 12)
+                    .stroke(Color.proSecondary.opacity(0.15), lineWidth: 12)
                     .frame(width: 80, height: 80)
                 Circle()
                     .trim(from: 0, to: standProgress)
-                    .stroke(secondaryGreen, style: StrokeStyle(lineWidth: 12, lineCap: .round))
+                    .stroke(Color.proSecondary, style: StrokeStyle(lineWidth: 12, lineCap: .round))
                     .frame(width: 80, height: 80)
                     .rotationEffect(.degrees(-90))
             }
@@ -139,27 +116,26 @@ struct StepsDetailView: View {
             
             Spacer()
             
-            // Statistics
             VStack(alignment: .leading, spacing: 24) {
                 statisticBlock(
                     title: "Move",
                     value: "\(Int(caloriesCurrent))/\(Int(caloriesTarget))",
                     subtitle: "Calories Burned",
-                    color: primaryGreen
+                    color: .proPrimary
                 )
                 
                 statisticBlock(
                     title: "Exercise",
                     value: "\(Int(exerciseCurrent))/\(Int(exerciseTarget))",
                     subtitle: "Minutes Moving",
-                    color: tertiaryGreen
+                    color: .proTertiary
                 )
                 
                 statisticBlock(
                     title: "Stand",
                     value: "\(Int(standCurrent))/\(Int(standTarget))",
                     subtitle: "Hours Standing",
-                    color: secondaryGreen
+                    color: .proSecondary
                 )
             }
             .frame(maxWidth: 160)
@@ -167,31 +143,25 @@ struct StepsDetailView: View {
         }
     }
     
-    // New: Separate chart controls (buttons and heading)
     private var chartControlsSection: some View {
         VStack(spacing: 16) {
-            // Time frame buttons
             timeFrameButtons
-            
-            // Steps Tracker heading with proper alignment
             stepsTrackerHeading
         }
     }
     
-    // Shows the Time Frame Buttons, labeled "Day", "Week", "Month", and "Year"
     private var timeFrameButtons: some View {
         HStack {
             ForEach(TimeFrame.allCases, id: \.self) { timeFrame in
                 Button(action: {
                     selectedTimeFrame = timeFrame
-                    selectedDataPoint = nil
                 }) {
                     Text(timeFrame.rawValue)
                         .font(.system(size: 16, weight: .medium))
                         .foregroundColor(selectedTimeFrame == timeFrame ? .white : Color(red: 0.5, green: 0.5, blue: 0.5))
                         .frame(maxWidth: .infinity)
                         .frame(height: 34)
-                        .background(selectedTimeFrame == timeFrame ? tertiaryGreen : Color.white)
+                        .background(selectedTimeFrame == timeFrame ? Color.proTertiary : Color.white)
                         .cornerRadius(10)
                         .shadow(color: .gray.opacity(0.3), radius: 3, x: 0, y: 2)
                 }
@@ -203,186 +173,219 @@ struct StepsDetailView: View {
         }
         .padding(.horizontal, 24)
     }
-
-    // Steps Tracker heading with left alignment and primaryGreen color
+    
     private var stepsTrackerHeading: some View {
         HStack {
             Text("Steps Tracker")
                 .font(.title2)
                 .fontWeight(.semibold)
-                .foregroundColor(primaryGreen)
+                .foregroundColor(.proPrimary)
             Spacer()
         }
         .padding(.horizontal, 24)
     }
-
-    // New: Chart display container with proper structure
+    
+    // MARK: - Optimized Chart Implementation
+    
     private var chartDisplayContainer: some View {
         VStack(spacing: 0) {
-            // Message box area (top margin)
-            ZStack {
-                if let selectedPoint = selectedDataPoint {
-                    GeometryReader { geometry in
-                        let data = getChartData()
-                        if let selectedIndex = data.firstIndex(where: { $0.id == selectedPoint.id }) {
-                            let chartAreaWidth = geometry.size.width - 32 // Account for chartSection padding
-                            let barWidth = chartAreaWidth / CGFloat(data.count)
-                            let xPosition = 16 + (CGFloat(selectedIndex) + 0.5) * barWidth
-                            
-                            // Message box with triangle pointer
-                            VStack(spacing: 0) {
-                                Text("\(selectedPoint.steps)")
-                                    .font(.title2)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.white)
-                                Text("steps")
-                                    .font(.caption)
-                                    .foregroundColor(.white)
-                            }
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
-                            .background(tertiaryGreen)
-                            .cornerRadius(8)
-                            .overlay(
-                                // Triangle pointer
-                                Triangle()
-                                    .fill(tertiaryGreen)
-                                    .frame(width: 10, height: 6)
-                                    .offset(y: 8),
-                                alignment: .bottom
-                            )
-                            .position(
-                                x: min(max(xPosition, 50), geometry.size.width - 50),
-                                y: 30
-                            )
+            // Message box positioning
+            if let selectedPoint = selectedDataPoint {
+                VStack(spacing: 0) {
+                    ZStack {
+                        VStack(spacing: 0) {
+                            Text("\(selectedPoint.steps)")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                            Text("steps")
+                                .font(.caption)
+                                .foregroundColor(.white)
                         }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(Color.proTertiary)
+                        .cornerRadius(8)
+                        .overlay(
+                            Triangle()
+                                .fill(Color.proTertiary)
+                                .frame(width: 10, height: 6)
+                                .offset(y: 8),
+                            alignment: .bottom
+                        )
                     }
-                } else {
-                    Color.clear
+                    .frame(height: 80)
+                    
+                    chartSection
+                }
+            } else {
+                VStack(spacing: 0) {
+                    Rectangle()
+                        .fill(Color.clear)
+                        .frame(height: 80)
+                    chartSection
                 }
             }
-            .frame(height: 60)
-            
-            // Chart section container (transparent background)
-            chartSectionContainer
         }
-        .background(Color.white) // chartDisplay container white background
+        .background(Color.white)
         .cornerRadius(12)
         .shadow(color: .gray.opacity(0.2), radius: 4, x: 0, y: 2)
         .padding(.horizontal, 24)
     }
     
-    // New: Chart section with transparent background
-    private var chartSectionContainer: some View {
+    private var chartSection: some View {
         VStack(spacing: 12) {
-            ZStack {
-                // Interactive chart with proper bar colors
-                Chart(getChartData()) { dataPoint in
+            // Optimized Chart with direct content (no type erasure)
+            Chart {
+                // Vertical hitbox boundary lines at integer positions
+                ForEach(0..<(currentData.count + 1), id: \.self) { index in
+                    RuleMark(x: .value("Boundary", index))
+                        .foregroundStyle(Color.boundary)
+                        .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [3, 2]))
+                }
+                
+                // Bars centered between boundary lines (at 0.5, 1.5, 2.5, etc.)
+                ForEach(Array(currentData.enumerated()), id: \.element.id) { index, point in
                     BarMark(
-                        x: .value("Period", dataPoint.label),
-                        y: .value("Steps", dataPoint.steps)
+                        x: .value("Position", Double(index) + 0.5),
+                        y: .value("Steps", point.steps)
                     )
-                    .foregroundStyle(selectedDataPoint?.id == dataPoint.id ? tertiaryGreen : defaultBarColor)
+                    .foregroundStyle(selectedDataPoint?.id == point.id ? Color.proTertiary : Color.barDefault)
                     .cornerRadius(2)
                 }
-                .chartYScale(domain: 0...getMaxYValue())
-                .chartXAxis {
-                    if selectedTimeFrame == .day {
-                        // Simplified Day Mode axis
-                        AxisMarks { _ in
-                            AxisValueLabel("")
-                        }
-                    } else {
-                        // Standard axis for other modes
-                        AxisMarks { _ in
-                            AxisValueLabel()
+            }
+            .chartYScale(domain: 0...maxYValue)
+            .chartYAxis {
+                AxisMarks(position: .leading) {
+                    AxisGridLine()
+                        .foregroundStyle(Color.gray.opacity(0.3))
+                    AxisValueLabel()
+                        .font(.caption)
+                        .foregroundStyle(.gray)
+                }
+            }
+            .chartXAxis {
+                if selectedTimeFrame == .day {
+                    AxisMarks { _ in
+                        AxisValueLabel("")
+                    }
+                } else {
+                    AxisMarks(values: .stride(by: 1)) { value in
+                        if let index = value.as(Int.self),
+                           index >= 0 && index < currentData.count {
+                            AxisValueLabel(currentData[index].label)
                                 .font(.caption)
                                 .foregroundStyle(.gray)
                         }
                     }
                 }
-                .chartYAxis {
-                    AxisMarks(position: .leading) { _ in
-                        AxisGridLine()
-                            .foregroundStyle(Color.gray.opacity(0.3))
-                        AxisValueLabel()
-                            .font(.caption)
-                            .foregroundStyle(.gray)
-                    }
-                }
-                .frame(height: 200)
-                
-                // Vertical dashed line connecting to selected bar
-                if let selectedPoint = selectedDataPoint {
-                    GeometryReader { geometry in
-                        let data = getChartData()
-                        if let selectedIndex = data.firstIndex(where: { $0.id == selectedPoint.id }) {
-                            let chartWidth = geometry.size.width
-                            let barWidth = chartWidth / CGFloat(data.count)
-                            let xPosition = (CGFloat(selectedIndex) + 0.5) * barWidth
-                            
-                            Path { path in
-                                path.move(to: CGPoint(x: xPosition, y: -60))
-                                path.addLine(to: CGPoint(x: xPosition, y: geometry.size.height))
-                            }
-                            .stroke(style: StrokeStyle(lineWidth: 2, dash: [4, 4]))
-                            .foregroundColor(tertiaryGreen)
-                        }
-                    }
-                }
             }
-            .onTapGesture { location in
-                handleChartTap(at: location)
+            .frame(height: 200)
+            .chartOverlay { proxy in
+                GeometryReader { geometry in
+                    Rectangle()
+                        .fill(Color.clear)
+                        .contentShape(Rectangle())
+                        .onTapGesture { location in
+                            handleChartTap(at: location, proxy: proxy, geometry: geometry)
+                        }
+                }
             }
             
-            // Day Mode labels positioned below chart
+            // Day mode time labels
             if selectedTimeFrame == .day {
-                VStack(spacing: 8) {
-                    // Custom positioned labels for 6 AM, 12 PM, 6 PM
-                    HStack {
-                        ForEach(0..<12, id: \.self) { index in
-                            if index == 3 {
-                                Text("6 AM")
-                                    .font(.caption)
-                                    .foregroundStyle(.gray)
-                            } else if index == 6 {
-                                Text("12 PM")
-                                    .font(.caption)
-                                    .foregroundStyle(.gray)
-                            } else if index == 9 {
-                                Text("6 PM")
-                                    .font(.caption)
-                                    .foregroundStyle(.gray)
-                            } else {
-                                Text("")
-                                    .font(.caption)
-                            }
-                            
-                            if index < 11 {
-                                Spacer()
-                            }
-                        }
-                    }
-                    .padding(.horizontal, 16)
-                    
-                    // Sun and moon icons
-                    HStack {
-                        Image(systemName: "sun.max")
-                            .foregroundColor(.gray)
-                            .font(.title2)
-                        
-                        Spacer()
-                        
-                        Image(systemName: "moon")
-                            .foregroundColor(.gray)
-                            .font(.title2)
-                    }
-                    .padding(.horizontal, 16)
-                }
+                dayModeLabels
             }
         }
         .padding(16)
-        .background(Color.clear) // Transparent background for chartSection
+    }
+    
+    private var dayModeLabels: some View {
+        VStack(spacing: 8) {
+            HStack {
+                ForEach(0..<12, id: \.self) { index in
+                    Group {
+                        switch index {
+                        case 3: Text("6 AM")
+                        case 6: Text("12 PM")
+                        case 9: Text("6 PM")
+                        default: Text("")
+                        }
+                    }
+                    .font(.caption)
+                    .foregroundStyle(.gray)
+                    
+                    if index < 11 {
+                        Spacer()
+                    }
+                }
+            }
+            .padding(.horizontal, 16)
+            
+            HStack {
+                Image(systemName: "sun.max")
+                    .foregroundColor(.gray)
+                    .font(.title2)
+                
+                Spacer()
+                
+                Image(systemName: "moon")
+                    .foregroundColor(.gray)
+                    .font(.title2)
+            }
+            .padding(.horizontal, 16)
+        }
+    }
+    
+    // MARK: - Optimized Chart Interaction
+    
+    private func handleChartTap(at location: CGPoint, proxy: ChartProxy, geometry: GeometryProxy) {
+        guard let plotFrame = proxy.plotFrame else { return }
+        
+        let frame = geometry[plotFrame]
+        let plotX = location.x - frame.origin.x
+        
+        guard let xValue = proxy.value(atX: plotX, as: Double.self) else { return }
+        
+        let barIndex = Int(round(xValue - 0.5))
+        guard barIndex >= 0 && barIndex < currentData.count else { return }
+        
+        let tappedDataPoint = currentData[barIndex]
+        
+        withAnimation(.easeInOut(duration: 0.3)) {
+            selectedDataPoint = (selectedDataPoint?.id == tappedDataPoint.id) ? nil : tappedDataPoint
+        }
+    }
+    
+    // MARK: - Performance Helper Methods
+    
+    private func refreshForTimeFrame() {
+        currentData = getChartData()
+        maxYValue = computeMaxYValue(from: currentData)
+    }
+    
+    private func computeMaxYValue(from data: [ChartDataPoint]) -> Int {
+        let maxSteps = data.map { $0.steps }.max() ?? 0
+        
+        switch maxSteps {
+        case 0...1000:
+            return ((maxSteps / 100) + 1) * 100
+        case 1001...5000:
+            return ((maxSteps / 500) + 1) * 500
+        case 5001...10000:
+            return ((maxSteps / 1000) + 1) * 1000
+        default:
+            return ((maxSteps / 10000) + 1) * 10000
+        }
+    }
+    
+    private func getChartData() -> [ChartDataPoint] {
+        switch selectedTimeFrame {
+        case .day: return dayChartData
+        case .week: return weekChartData
+        case .month: return monthChartData
+        case .year: return yearChartData
+        }
     }
     
     // MARK: - Helper Methods
@@ -413,21 +416,6 @@ struct StepsDetailView: View {
         }
     }
     
-    // Fixed: Use static chart data
-    private func getChartData() -> [ChartDataPoint] {
-        switch selectedTimeFrame {
-        case .day:
-            return dayChartData
-        case .week:
-            return weekChartData
-        case .month:
-            return monthChartData
-        case .year:
-            return yearChartData
-        }
-    }
-    
-    // Fixed: Initialize static chart data once
     private func initializeChartData() {
         dayChartData = [
             ChartDataPoint(id: UUID(), label: "12am", steps: 45, date: Date()),
@@ -476,64 +464,19 @@ struct StepsDetailView: View {
             ChartDataPoint(id: UUID(), label: "Dec", steps: 0, date: Date())
         ]
     }
-    
-    private func getMaxYValue() -> Int {
-        let maxSteps = getChartData().map { $0.steps }.max() ?? 0
-        
-        if maxSteps <= 1000 {
-            return ((maxSteps / 100) + 1) * 100
-        } else if maxSteps <= 5000 {
-            return ((maxSteps / 500) + 1) * 500
-        } else if maxSteps <= 10000 {
-            return ((maxSteps / 1000) + 1) * 1000
-        } else {
-            return ((maxSteps / 10000) + 1) * 10000
-        }
-    }
-    
-    // Fixed: Simplified tap handling
-    private func handleChartTap(at location: CGPoint) {
-        let data = getChartData()
-        let chartAreaWidth = UIScreen.main.bounds.width - 112 // Total padding (24+24+16+16+32)
-        let barWidth = chartAreaWidth / CGFloat(data.count)
-        let tapIndex = Int(location.x / barWidth)
-        
-        print("Tap location: \(location.x), Bar width: \(barWidth), Tap index: \(tapIndex), Data count: \(data.count)")
-        
-        if tapIndex >= 0 && tapIndex < data.count {
-            let tappedDataPoint = data[tapIndex]
-            
-            withAnimation(.easeInOut(duration: 0.3)) {
-                if selectedDataPoint?.id == tappedDataPoint.id {
-                    selectedDataPoint = nil
-                    print("Deselected bar at index: \(tapIndex)")
-                } else {
-                    selectedDataPoint = tappedDataPoint
-                    print("Selected bar at index: \(tapIndex), steps: \(tappedDataPoint.steps)")
-                }
-            }
-        }
-    }
-    
-    private func generateSampleHourlyData() {
-        allHourlyStepData = []
-    }
-    
-    private func loadSampleStepData() {
-        let calendar = Calendar.current
-        stepData = [
-            StepReading(date: calendar.date(byAdding: .day, value: -6, to: Date())!, steps: 7200),
-            StepReading(date: calendar.date(byAdding: .day, value: -5, to: Date())!, steps: 8900),
-            StepReading(date: calendar.date(byAdding: .day, value: -4, to: Date())!, steps: 6500),
-            StepReading(date: calendar.date(byAdding: .day, value: -3, to: Date())!, steps: 9200),
-            StepReading(date: calendar.date(byAdding: .day, value: -2, to: Date())!, steps: 7800),
-            StepReading(date: calendar.date(byAdding: .day, value: -1, to: Date())!, steps: 8500),
-            StepReading(date: Date(), steps: 5432)
-        ]
-    }
 }
 
-// Triangle shape for message box pointer
+// MARK: - Supporting Structures & Extensions
+
+// Optimized static colors
+private extension Color {
+    static let proPrimary = Color(red: 0.01, green: 0.33, blue: 0.18)
+    static let proSecondary = Color(red: 0.39, green: 0.59, blue: 0.38)
+    static let proTertiary = Color(red: 0.23, green: 0.51, blue: 0.36)
+    static let barDefault = Color(red: 0.682, green: 0.698, blue: 0.788)
+    static let boundary = Color(red: 0.839, green: 0.871, blue: 0.929).opacity(0.4)
+}
+
 struct Triangle: Shape {
     func path(in rect: CGRect) -> Path {
         var path = Path()
@@ -545,19 +488,11 @@ struct Triangle: Shape {
     }
 }
 
-// MARK: - Data Structures
-
 enum TimeFrame: String, CaseIterable {
     case day = "Day"
     case week = "Week"
     case month = "Month"
     case year = "Year"
-}
-
-struct HourlyStepData: Identifiable {
-    let id = UUID()
-    let date: Date
-    let steps: Int
 }
 
 struct ChartDataPoint: Identifiable {
@@ -567,16 +502,8 @@ struct ChartDataPoint: Identifiable {
     let date: Date
 }
 
-struct StepReading: Identifiable {
-    let id = UUID()
-    let date: Date
-    let steps: Int
-}
-
-// Developers can see a preview of the Steps & Activity page.
 struct StepsDetailView_Previews: PreviewProvider {
     static var previews: some View {
         StepsDetailView()
     }
 }
-
