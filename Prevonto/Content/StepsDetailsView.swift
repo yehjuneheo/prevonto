@@ -31,6 +31,9 @@ struct StepsDetailView: View {
     var exerciseProgress: Double { min(exerciseCurrent / exerciseTarget, 1.0) }
     var standProgress: Double { min(standCurrent / standTarget, 1.0) }
     
+    // Day Mode spacing factor - increases spacing between vertical hitbox lines
+    private var dayModeSpacingFactor: Double { 1.5 }
+    
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
@@ -185,14 +188,22 @@ struct StepsDetailView: View {
         .padding(.horizontal, 24)
     }
     
-    // MARK: - Optimized Chart Implementation
+    // MARK: - FIXED: Chart Implementation with Properly Positioned Message Box
     
     private var chartDisplayContainer: some View {
         VStack(spacing: 0) {
-            // Message box positioning
-            if let selectedPoint = selectedDataPoint {
-                VStack(spacing: 0) {
-                    ZStack {
+            // FIXED: Message box using GeometryReader and offset positioning
+            GeometryReader { geometry in
+                ZStack {
+                    // Background container for consistent height
+                    Rectangle()
+                        .fill(Color.clear)
+                        .frame(height: 80)
+                    
+                    // Message box positioned above selected bar
+                    if let selectedPoint = selectedDataPoint,
+                       let selectedIndex = currentData.firstIndex(where: { $0.id == selectedPoint.id }) {
+                        
                         VStack(spacing: 0) {
                             Text("\(selectedPoint.steps)")
                                 .font(.title2)
@@ -213,19 +224,19 @@ struct StepsDetailView: View {
                                 .offset(y: 8),
                             alignment: .bottom
                         )
+                        .position(
+                            x: calculateMessageBoxXPosition(
+                                selectedIndex: selectedIndex,
+                                containerWidth: geometry.size.width
+                            ),
+                            y: 40
+                        )
                     }
-                    .frame(height: 80)
-                    
-                    chartSection
-                }
-            } else {
-                VStack(spacing: 0) {
-                    Rectangle()
-                        .fill(Color.clear)
-                        .frame(height: 80)
-                    chartSection
                 }
             }
+            .frame(height: 80)
+            
+            chartSection
         }
         .background(Color.white)
         .cornerRadius(12)
@@ -233,21 +244,54 @@ struct StepsDetailView: View {
         .padding(.horizontal, 24)
     }
     
+    // MARK: - FIXED: Message Box Positioning Helper
+    
+    private func calculateMessageBoxXPosition(selectedIndex: Int, containerWidth: CGFloat) -> CGFloat {
+        // Account for chart padding (16 points on each side)
+        let chartPadding: CGFloat = 16
+        let availableWidth = containerWidth - (chartPadding * 2)
+        
+        let totalBars = currentData.count
+        
+        // Calculate relative position based on spacing mode
+        let relativePosition: Double
+        if selectedTimeFrame == .day {
+            let barPosition = (Double(selectedIndex) + 0.5) * dayModeSpacingFactor
+            let totalWidth = Double(totalBars) * dayModeSpacingFactor
+            relativePosition = barPosition / totalWidth
+        } else {
+            let barPosition = Double(selectedIndex) + 0.5
+            let totalWidth = Double(totalBars)
+            relativePosition = barPosition / totalWidth
+        }
+        
+        // Calculate X position within available chart area
+        let chartXPosition = availableWidth * CGFloat(relativePosition)
+        let finalXPosition = chartPadding + chartXPosition
+        
+        // Ensure message box stays within bounds (60pt margins on each side)
+        let messageBoxHalfWidth: CGFloat = 60
+        let minX = messageBoxHalfWidth
+        let maxX = containerWidth - messageBoxHalfWidth
+        
+        return max(minX, min(maxX, finalXPosition))
+    }
+    
     private var chartSection: some View {
         VStack(spacing: 12) {
-            // Optimized Chart with direct content (no type erasure)
+            // Enhanced Chart with Day Mode spacing
             Chart {
-                // Vertical hitbox boundary lines at integer positions
+                // Vertical hitbox boundary lines with conditional spacing
                 ForEach(0..<(currentData.count + 1), id: \.self) { index in
-                    RuleMark(x: .value("Boundary", index))
+                    RuleMark(x: .value("Boundary", getBoundaryPosition(for: index)))
                         .foregroundStyle(Color.boundary)
                         .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [3, 2]))
                 }
                 
-                // Bars centered between boundary lines (at 0.5, 1.5, 2.5, etc.)
+                // Bars centered between boundary lines with conditional spacing
                 ForEach(Array(currentData.enumerated()), id: \.element.id) { index, point in
                     BarMark(
-                        x: .value("Position", Double(index) + 0.5),
+                        x: .value("Position", getBarPosition(for: index)),
                         y: .value("Steps", point.steps)
                     )
                     .foregroundStyle(selectedDataPoint?.id == point.id ? Color.proTertiary : Color.barDefault)
@@ -255,6 +299,7 @@ struct StepsDetailView: View {
                 }
             }
             .chartYScale(domain: 0...maxYValue)
+            .chartXScale(domain: getXAxisDomain())
             .chartYAxis {
                 AxisMarks(position: .leading) {
                     AxisGridLine()
@@ -292,15 +337,17 @@ struct StepsDetailView: View {
                 }
             }
             
-            // Day mode time labels
+            // Day mode time labels with adjusted spacing
             if selectedTimeFrame == .day {
-                dayModeLabels
+                enhancedDayModeLabels
             }
         }
         .padding(16)
     }
     
-    private var dayModeLabels: some View {
+    // MARK: - Enhanced Day Mode Labels with Proper Spacing
+    
+    private var enhancedDayModeLabels: some View {
         VStack(spacing: 8) {
             HStack {
                 ForEach(0..<12, id: \.self) { index in
@@ -337,7 +384,34 @@ struct StepsDetailView: View {
         }
     }
     
-    // MARK: - Optimized Chart Interaction
+    // MARK: - Spacing Helper Methods
+    
+    private func getBoundaryPosition(for index: Int) -> Double {
+        if selectedTimeFrame == .day {
+            return Double(index) * dayModeSpacingFactor
+        } else {
+            return Double(index)
+        }
+    }
+    
+    private func getBarPosition(for index: Int) -> Double {
+        if selectedTimeFrame == .day {
+            return (Double(index) + 0.5) * dayModeSpacingFactor
+        } else {
+            return Double(index) + 0.5
+        }
+    }
+    
+    private func getXAxisDomain() -> ClosedRange<Double> {
+        if selectedTimeFrame == .day {
+            let maxPosition = Double(currentData.count) * dayModeSpacingFactor
+            return 0...maxPosition
+        } else {
+            return 0...Double(currentData.count)
+        }
+    }
+    
+    // MARK: - Enhanced Chart Interaction with Spacing
     
     private func handleChartTap(at location: CGPoint, proxy: ChartProxy, geometry: GeometryProxy) {
         guard let plotFrame = proxy.plotFrame else { return }
@@ -347,7 +421,14 @@ struct StepsDetailView: View {
         
         guard let xValue = proxy.value(atX: plotX, as: Double.self) else { return }
         
-        let barIndex = Int(round(xValue - 0.5))
+        // Calculate bar index based on spacing mode
+        let barIndex: Int
+        if selectedTimeFrame == .day {
+            barIndex = Int(round((xValue / dayModeSpacingFactor) - 0.5))
+        } else {
+            barIndex = Int(round(xValue - 0.5))
+        }
+        
         guard barIndex >= 0 && barIndex < currentData.count else { return }
         
         let tappedDataPoint = currentData[barIndex]
