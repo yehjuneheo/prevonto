@@ -2,7 +2,7 @@
 import SwiftUI
 import Charts
 
-struct StepsDetailView: View {
+struct StepsDetailsView: View {
     @Environment(\.dismiss) private var dismiss
     
     // Chart state
@@ -27,11 +27,12 @@ struct StepsDetailView: View {
     let standCurrent: Double = 3
     let standTarget: Double = 12
     
+    // Activity ring progress values
     var caloriesProgress: Double { min(caloriesCurrent / caloriesTarget, 1.0) }
     var exerciseProgress: Double { min(exerciseCurrent / exerciseTarget, 1.0) }
     var standProgress: Double { min(standCurrent / standTarget, 1.0) }
     
-    // Day Mode spacing factor - increases spacing between vertical hitbox lines
+    // Day Mode spacing factor - increases spacing between vertical hitbox lines for Day Mode of Chart
     private var dayModeSpacingFactor: Double { 1.5 }
     
     var body: some View {
@@ -53,7 +54,7 @@ struct StepsDetailView: View {
             initializeChartData()
             refreshForTimeFrame()
         }
-        .onChange(of: selectedTimeFrame) { _ in
+        .onChange(of: selectedTimeFrame) { _, _ in
             selectedDataPoint = nil
             refreshForTimeFrame()
         }
@@ -119,6 +120,7 @@ struct StepsDetailView: View {
             
             Spacer()
             
+            // Statistics display associated with 3 Activity Rings
             VStack(alignment: .leading, spacing: 24) {
                 statisticBlock(
                     title: "Move",
@@ -188,22 +190,19 @@ struct StepsDetailView: View {
         .padding(.horizontal, 24)
     }
     
-    // MARK: - FIXED: Chart Implementation with Properly Positioned Message Box
+    // MARK: - Chart Implementation with Centered Message Box
     
     private var chartDisplayContainer: some View {
         VStack(spacing: 0) {
-            // FIXED: Message box using GeometryReader and offset positioning
-            GeometryReader { geometry in
-                ZStack {
-                    // Background container for consistent height
-                    Rectangle()
-                        .fill(Color.clear)
-                        .frame(height: 80)
-                    
-                    // Message box positioned above selected bar
-                    if let selectedPoint = selectedDataPoint,
-                       let selectedIndex = currentData.firstIndex(where: { $0.id == selectedPoint.id }) {
-                        
+            // Centered message box overlay
+            ZStack(alignment: .top) {
+                Rectangle()
+                    .fill(Color.clear)
+                    .frame(height: 80)
+                
+                if let selectedPoint = selectedDataPoint {
+                    HStack {
+                        Spacer()
                         VStack(spacing: 0) {
                             Text("\(selectedPoint.steps)")
                                 .font(.title2)
@@ -224,17 +223,11 @@ struct StepsDetailView: View {
                                 .offset(y: 8),
                             alignment: .bottom
                         )
-                        .position(
-                            x: calculateMessageBoxXPosition(
-                                selectedIndex: selectedIndex,
-                                containerWidth: geometry.size.width
-                            ),
-                            y: 40
-                        )
+                        Spacer()
                     }
+                    .frame(height: 80)
                 }
             }
-            .frame(height: 80)
             
             chartSection
         }
@@ -244,42 +237,8 @@ struct StepsDetailView: View {
         .padding(.horizontal, 24)
     }
     
-    // MARK: - FIXED: Message Box Positioning Helper
-    
-    private func calculateMessageBoxXPosition(selectedIndex: Int, containerWidth: CGFloat) -> CGFloat {
-        // Account for chart padding (16 points on each side)
-        let chartPadding: CGFloat = 16
-        let availableWidth = containerWidth - (chartPadding * 2)
-        
-        let totalBars = currentData.count
-        
-        // Calculate relative position based on spacing mode
-        let relativePosition: Double
-        if selectedTimeFrame == .day {
-            let barPosition = (Double(selectedIndex) + 0.5) * dayModeSpacingFactor
-            let totalWidth = Double(totalBars) * dayModeSpacingFactor
-            relativePosition = barPosition / totalWidth
-        } else {
-            let barPosition = Double(selectedIndex) + 0.5
-            let totalWidth = Double(totalBars)
-            relativePosition = barPosition / totalWidth
-        }
-        
-        // Calculate X position within available chart area
-        let chartXPosition = availableWidth * CGFloat(relativePosition)
-        let finalXPosition = chartPadding + chartXPosition
-        
-        // Ensure message box stays within bounds (60pt margins on each side)
-        let messageBoxHalfWidth: CGFloat = 60
-        let minX = messageBoxHalfWidth
-        let maxX = containerWidth - messageBoxHalfWidth
-        
-        return max(minX, min(maxX, finalXPosition))
-    }
-    
     private var chartSection: some View {
         VStack(spacing: 12) {
-            // Enhanced Chart with Day Mode spacing
             Chart {
                 // Vertical hitbox boundary lines with conditional spacing
                 ForEach(0..<(currentData.count + 1), id: \.self) { index in
@@ -524,10 +483,10 @@ struct StepsDetailView: View {
         ]
         
         monthChartData = [
-            ChartDataPoint(id: UUID(), label: "W1", steps: 45321, date: Date()),
-            ChartDataPoint(id: UUID(), label: "W2", steps: 52145, date: Date()),
-            ChartDataPoint(id: UUID(), label: "W3", steps: 48967, date: Date()),
-            ChartDataPoint(id: UUID(), label: "W4", steps: 51234, date: Date())
+            ChartDataPoint(id: UUID(), label: "Week 1", steps: 45321, date: Date()),
+            ChartDataPoint(id: UUID(), label: "Week 2", steps: 52145, date: Date()),
+            ChartDataPoint(id: UUID(), label: "Week 3", steps: 48967, date: Date()),
+            ChartDataPoint(id: UUID(), label: "Week 4", steps: 51234, date: Date())
         ]
         
         yearChartData = [
@@ -549,7 +508,6 @@ struct StepsDetailView: View {
 
 // MARK: - Supporting Structures & Extensions
 
-// Optimized static colors
 private extension Color {
     static let proPrimary = Color(red: 0.01, green: 0.33, blue: 0.18)
     static let proSecondary = Color(red: 0.39, green: 0.59, blue: 0.38)
@@ -583,8 +541,9 @@ struct ChartDataPoint: Identifiable {
     let date: Date
 }
 
-struct StepsDetailView_Previews: PreviewProvider {
+struct StepsDetailsView_Previews: PreviewProvider {
     static var previews: some View {
-        StepsDetailView()
+        StepsDetailsView()
     }
 }
+

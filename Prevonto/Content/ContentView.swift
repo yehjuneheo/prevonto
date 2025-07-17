@@ -182,12 +182,7 @@ struct ContentView: View {
                         .buttonStyle(.borderedProminent)
 
                         NavigationLink("Steps Details") {
-                            StepsDetailView()
-                        }
-                        .buttonStyle(.borderedProminent)
-                        
-                        NavigationLink("Blood Pressure") {
-                            BloodPressureView()
+                            StepsDetailsView()
                         }
                         .buttonStyle(.borderedProminent)
                         
