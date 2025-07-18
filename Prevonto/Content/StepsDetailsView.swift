@@ -42,7 +42,8 @@ struct StepsDetailsView: View {
                     VStack(spacing: 32) {
                         titleSection
                         activityRingsSection
-                        chartControlsSection
+                        timeFrameButtons
+                        stepsTrackerHeading
                         chartDisplayContainer
                         Spacer(minLength: 50)
                     }
@@ -148,13 +149,6 @@ struct StepsDetailsView: View {
         }
     }
     
-    private var chartControlsSection: some View {
-        VStack(spacing: 16) {
-            timeFrameButtons
-            stepsTrackerHeading
-        }
-    }
-    
     private var timeFrameButtons: some View {
         HStack {
             ForEach(TimeFrame.allCases, id: \.self) { timeFrame in
@@ -236,7 +230,7 @@ struct StepsDetailsView: View {
         .shadow(color: .gray.opacity(0.2), radius: 4, x: 0, y: 2)
         .padding(.horizontal, 24)
     }
-    
+
     private var chartSection: some View {
         VStack(spacing: 12) {
             Chart {
@@ -546,4 +540,5 @@ struct StepsDetailsView_Previews: PreviewProvider {
         StepsDetailsView()
     }
 }
+
 
