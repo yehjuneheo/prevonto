@@ -186,6 +186,16 @@ struct ContentView: View {
                         }
                         .buttonStyle(.borderedProminent)
                         
+                        NavigationLink("Blood Glucose") {
+                            BloodGlucoseView()
+                        }
+                        .buttonStyle(.borderedProminent)
+                        
+                        NavigationLink("Days Tracked") {
+                            DaysTrackedView()
+                        }
+                        .buttonStyle(.borderedProminent)
+                        
                         // Placeholder for future pages
                         NavigationLink("More Coming Soon...") {
                             Text("Future Page")
