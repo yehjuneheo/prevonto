@@ -108,56 +108,43 @@ struct ContentView: View {
                     .cornerRadius(20)
                     .shadow(radius: 5)
                     
-                    // Button to Request HealthKit Authorization and Fetch Data
+                    // HealthKit Authorization Button
                     Button(action: {
                         healthKitManager.requestAuthorization { success, error in
                             if success {
                                 authorizationStatus = "Authorized"
-                                // Fetch step count
                                 healthKitManager.fetchTodayStepCount { steps, error in
                                     if let steps = steps {
                                         DispatchQueue.main.async {
                                             stepCount = steps
                                         }
-                                    } else {
-                                        print("Error fetching steps: \(error?.localizedDescription ?? "Unknown error")")
                                     }
                                 }
-                                // Fetch calories
                                 healthKitManager.fetchTodayCalories { cals, error in
                                     if let cals = cals {
                                         DispatchQueue.main.async {
                                             calories = cals
                                         }
-                                    } else {
-                                        print("Error fetching calories: \(error?.localizedDescription ?? "Unknown error")")
                                     }
                                 }
-                                // Fetch distance
                                 healthKitManager.fetchTodayDistance { distanceValue, error in
                                     if let distanceValue = distanceValue {
                                         DispatchQueue.main.async {
                                             distance = distanceValue
                                         }
-                                    } else {
-                                        print("Error fetching distance: \(error?.localizedDescription ?? "Unknown error")")
                                     }
                                 }
-                                // Fetch average heart rate
                                 healthKitManager.fetchTodayHeartRate { hr, error in
                                     if let hr = hr {
                                         DispatchQueue.main.async {
                                             heartRate = hr
                                         }
-                                    } else {
-                                        print("Error fetching heart rate: \(error?.localizedDescription ?? "Unknown error")")
                                     }
                                 }
                             } else {
                                 DispatchQueue.main.async {
                                     authorizationStatus = "Authorization Failed"
                                 }
-                                print("Authorization error: \(error?.localizedDescription ?? "Unknown error")")
                             }
                         }
                     }) {
@@ -171,11 +158,41 @@ struct ContentView: View {
                     }
                     .padding(.horizontal)
                     
-                    // Authorization Status
                     Text("Authorization Status: \(authorizationStatus)")
                         .font(.subheadline)
                         .foregroundColor(authorizationStatus == "Authorized" ? .green : .red)
                         .padding(.bottom)
+                    
+                    // Navigation Buttons
+                    VStack(spacing: 12) {
+
+                        NavigationLink("Weight Display") {
+                            WeightTrackerView()
+                        }
+                        .buttonStyle(.borderedProminent)
+                        
+                        NavigationLink("SpO2 Display") {
+                            SpO2View()
+                        }
+                        .buttonStyle(.borderedProminent)
+                        
+                        NavigationLink("Mood Tracker") {
+                            MoodTrackerView()
+                        }
+                        .buttonStyle(.borderedProminent)
+
+                        NavigationLink("Steps Details") {
+                            StepsDetailsView()
+                        }
+                        .buttonStyle(.borderedProminent)
+                        
+                        // Placeholder for future pages
+                        NavigationLink("More Coming Soon...") {
+                            Text("Future Page")
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                    .padding(.top)
                 }
                 .padding()
             }
