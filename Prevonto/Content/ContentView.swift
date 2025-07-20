@@ -182,8 +182,7 @@ struct ContentView: View {
                         .buttonStyle(.borderedProminent)
 
                         NavigationLink("Steps Details") {
-                            // Replace with your actual StepsDetailView
-                            Text("Steps Detail Page")
+                            StepsDetailsView()
                         }
                         .buttonStyle(.borderedProminent)
                         
